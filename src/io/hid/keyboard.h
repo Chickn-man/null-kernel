@@ -1,5 +1,5 @@
 /*
-#  main stuffs
+#  keyboard stuffs for the null Kernel
 #
 ##############################################################################
 #
@@ -23,41 +23,26 @@
 ##############################################################################
 */
 
-#include "conio.h"
-#include "screen.h"
-#include "video/vga.h"
+#ifndef _IO_HID_KEYBOARD_H
+#define _IO_HID_KEYBOARD_H
 
-#include "io/pic.h"
+#include <stdint.h>
 
-#include "interrupts/interrupts.h"
-#include "interrupts/handlers.h"
+extern char usKeyLower[];
 
-#include "shell.h"
+extern char usKeyUpper[];
 
-int main() {
-    vgaEnableCursor();
-    setColor(0x07);
+#define usKeyLeftShift 0x2A
+#define usKeyRightShift 0x36
+#define usKeyEnter 0x1C
+#define usKeyBackSpace 0x0E
+#define usKeySpacebar 0x39
 
-    screenFill(0, 0, 80, 25, ' ', 0x07);
+#define usKeyUp 0x48
+#define usKeyDown 0x50
+#define usKeyLeft 0x4B
+#define usKeyRight 0x4D
 
-    uint8_t idtrBuf[0x1000]; // TODO allocate this at runtime
-    idtr.limit = 0x0fff;
-    idtr.offset = &idtrBuf;
+extern char keyBuffer[65];
 
-    setIdtGate((void*)pageFaultHandler, 0xe, INTR, 0x08);
-    setIdtGate((void*)doubleFaultHandler, 0x8, INTR, 0x08);
-    setIdtGate((void*)genProcFaultHandler, 0xd, INTR, 0x08);
-    setIdtGate((void*)keyboardHandler, 0x21, INTR, 0x08);
-
-    asm ("lidt %0" : : "m" (idtr));
-
-    remapPic();
-    outb(PIC1_DATA, 0b11111001);
-    outb(PIC2_DATA, 0b11101111);
-
-    asm ("sti");
-
-    shell();
-
-    while (1) asm volatile ("hlt");
-}
+#endif // !defined _IO_HID_KEYBOARD_H

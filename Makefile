@@ -25,7 +25,7 @@
 PROGNAME = null
 
 VERSION_REL = 0
-VERSION_MAJ = 0
+VERSION_MAJ = 1
 VERSION_MIN = 0
 VERSION_FIX = 0
 
@@ -62,10 +62,15 @@ link: $(OBJS)
 	@ echo !==== LINKING $^
 	$(LD) $(LDFLAGS) -o $(BUILDDIR)/$(PROGNAME)-kernel $(LDS) $(OBJS) 
 
+$(OBJDIR)/interrupts/handlers.o: $(SRCDIR)/interrupts/handlers.c
+	@ echo !==== COMPILING $^
+	@ mkdir -p $(@D)
+	$(CC) $(CFLAGS) -mgeneral-regs-only -c $^ -o $@
+
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
 	@ echo !==== COMPILING $^
 	@ mkdir -p $(@D)
-	$(CC) $(CFLAGS) -c -o $@ $^
+	$(CC) $(CFLAGS) -c $^ -o $@ 
 	@
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.asm
@@ -91,4 +96,7 @@ clean:
 
 .PHONY: run
 run:
-	qemu-system-x86_64 -drive format=raw,file=$(BUILDDIR)/$(PROGNAME).iso
+	qemu-system-x86_64 -drive format=raw,file=$(BUILDDIR)/$(PROGNAME).iso -no-reboot -no-shutdown
+
+run-debug:
+	qemu-system-x86_64 -drive format=raw,file=$(BUILDDIR)/$(PROGNAME).iso -no-reboot -no-shutdown -d int -M smm=off

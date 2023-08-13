@@ -1,5 +1,5 @@
 /*
-#  conio functions for the null Kernel
+#  interrupt handlers for the null Kernel
 #
 ##############################################################################
 #
@@ -13,30 +13,23 @@
 #  version 3 of the License, or (at your option) any later version.
 #
 #  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  but WITHOUT ANY WARRANTY without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
-##############################################################################
+#############################################################################
 */
 
-#ifndef _CONIO_H
-#define _CONIO_H
+#ifndef _INTERRUPTS_HANDLERS_H
+#define _INTERRUPTS_HANDLERS_H
 
-int wherex();
-int wherey();
-void gotox(int x);
-void gotoy(int y);
-void gotoxy(int x, int y);
+struct interruptFrame;
+__attribute__((interrupt)) void pageFaultHandler(struct interruptFrame* frame);
+__attribute__((interrupt)) void doubleFaultHandler(struct interruptFrame* frame);
+__attribute__((interrupt)) void genProcFaultHandler(struct interruptFrame* frame);
+__attribute__((interrupt)) void keyboardHandler(struct interruptFrame* frame);
 
-void cputs(char *s);
-void cputc(char c);
-void cputc2(char c);
-char cgetc();
-
-void clrscr();
-
-#endif // !defined _CONIO_H
+#endif // !defined _INTERUPTS_HANDLERS_H

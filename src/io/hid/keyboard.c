@@ -1,5 +1,5 @@
 /*
-#  main stuffs
+#  keyboard stuffs for the null Kernel
 #
 ##############################################################################
 #
@@ -23,41 +23,42 @@
 ##############################################################################
 */
 
-#include "conio.h"
-#include "screen.h"
-#include "video/vga.h"
+#include <stdint.h>
 
-#include "io/pic.h"
+char usKeyLower[] = {
+     0 ,'\e', '1', '2',
+    '3', '4', '5', '6',
+    '7', '8', '9', '0',
+    '-', '=','\b','\t',
+    'q', 'w', 'e', 'r',
+    't', 'y', 'u', 'i',
+    'o', 'p', '[', ']',
+    '\r', 0 , 'a', 's',
+    'd', 'f', 'g', 'h',
+    'j', 'k', 'l', ';',
+    '\'','`',  0 ,'\\',
+    'z', 'x', 'c', 'v',
+    'b', 'n', 'm', ',',
+    '.', '/',  0 , '*',
+     0 , ' '
+};
 
-#include "interrupts/interrupts.h"
-#include "interrupts/handlers.h"
+char usKeyUpper[] = {
+     0 ,'\e', '!', '@',
+    '#', '$', '%', '^',
+    '&', '*', '(', ')',
+    '_', '+','\b','\t',
+    'Q', 'W', 'E', 'R',
+    'T', 'Y', 'U', 'I',
+    'O', 'P', '{', '}',
+    '\r', 0 , 'A', 'S',
+    'D', 'F', 'G', 'H',
+    'J', 'K', 'L', ';',
+    '\"','~',  0 , '|',
+    'Z', 'X', 'C', 'V',
+    'B', 'N', 'M', '<',
+    '>', '?',  0 , '*',
+     0 , ' '
+};
 
-#include "shell.h"
-
-int main() {
-    vgaEnableCursor();
-    setColor(0x07);
-
-    screenFill(0, 0, 80, 25, ' ', 0x07);
-
-    uint8_t idtrBuf[0x1000]; // TODO allocate this at runtime
-    idtr.limit = 0x0fff;
-    idtr.offset = &idtrBuf;
-
-    setIdtGate((void*)pageFaultHandler, 0xe, INTR, 0x08);
-    setIdtGate((void*)doubleFaultHandler, 0x8, INTR, 0x08);
-    setIdtGate((void*)genProcFaultHandler, 0xd, INTR, 0x08);
-    setIdtGate((void*)keyboardHandler, 0x21, INTR, 0x08);
-
-    asm ("lidt %0" : : "m" (idtr));
-
-    remapPic();
-    outb(PIC1_DATA, 0b11111001);
-    outb(PIC2_DATA, 0b11101111);
-
-    asm ("sti");
-
-    shell();
-
-    while (1) asm volatile ("hlt");
-}
+char keyBuffer[65];

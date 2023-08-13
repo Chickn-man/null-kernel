@@ -26,6 +26,7 @@
 #include "conio.h"
 #include "screen.h"
 #include "video/vga.h"
+#include "io/hid/keyboard.h"
 
 #include <stdint.h>
 #include <stddef.h>
@@ -74,6 +75,8 @@ void cputs(char *s) {
 
 // crude prototype
 void cputc(char c) {
+    if (!c) return;
+
     switch (c) {
         case '\n':
             cursorY++;
@@ -84,6 +87,7 @@ void cputc(char c) {
         case '\b':
             cursorX--;
             if (cursorX < 0) cursorX = 0;
+            break;
         default:
             screen[(cols * cursorY) + cursorX] = (character){c, defaultColor};
             cursorX++;
@@ -93,9 +97,31 @@ void cputc(char c) {
     if (cursorX >= cols) cursorX = 0, cursorY++;
     if (cursorY >= rows) {
         cursorY = rows - 1;
-        screenShift(0, 1, 0, 0, cols, rows);
-        screenFill(0, rows, cols, 0, ' ', defaultColor);
+        screenShift(0, 1, 0, 0, cols, rows - 1);
+        screenFill(0, rows, cols, 1, ' ', defaultColor);
     }
 
     vgaUpdateCursor(cursorX, cursorY);
 }
+
+char cgetc() {
+    char c = keyBuffer[0];
+    for (uint8_t i = 0; i < 15; i++) keyBuffer[i] = keyBuffer[i + 1];
+    keyBuffer[63] = 0;
+    return (c);
+}
+
+/* puts a character c at the cursor position ignoring \n and \r */
+void cputc2(char c) {
+    if (c == '\n' || c == '\r') return;
+
+    cputc(c);
+   
+}
+
+void clrscr() {
+    screenFill(0, 0, cols, rows, ' ', defaultColor);
+
+    gotoxy(0, 0);
+}
+

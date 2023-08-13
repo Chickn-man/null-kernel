@@ -1,5 +1,5 @@
 /*
-#  conio functions for the null Kernel
+#  string functions for the null Kernel
 #
 ##############################################################################
 #
@@ -13,30 +13,36 @@
 #  version 3 of the License, or (at your option) any later version.
 #
 #  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  but WITHOUT ANY WARRANTY without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
-##############################################################################
+#############################################################################
 */
 
-#ifndef _CONIO_H
-#define _CONIO_H
+#ifndef _STRING2_H
+#define _STRING2_H
 
-int wherex();
-int wherey();
-void gotox(int x);
-void gotoy(int y);
-void gotoxy(int x, int y);
+unsigned short strlen(char *string);
+void strcpy(char *dst, char *src);
+void strcat(char *dst, char *src);
+void strcatc(char *dst, char c);
+int strcmp(char *s1, char *s2);
+void strdelc(char *str);
+char *strchr(char *s, int c);
+char *strtok(char *s, char *delim);
+char *strupr(char *s);
+char *strlwr(char *s);
 
-void cputs(char *s);
-void cputc(char c);
-void cputc2(char c);
-char cgetc();
+char toupper(char c);
+char tolower(char c);
 
-void clrscr();
+unsigned int hextoi(char *str);
+char *itohex(unsigned int num);
+int atoi(char *str);
+char *itoa(int n, char *buffer, int radix);
 
-#endif // !defined _CONIO_H
+#endif

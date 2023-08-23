@@ -23,9 +23,14 @@
 ##############################################################################
 */
 
+#include "multiboot/mbi.h"
+
 #include "conio.h"
+#include "string.h"
 #include "screen.h"
 #include "video/vga.h"
+
+#include "paging/paging.h"
 
 #include "io/pic.h"
 
@@ -34,30 +39,61 @@
 
 #include "shell.h"
 
+extern void *kernelStart;
+extern void *kernelEnd;
+
+void *mbi;
+
 int main() {
-    vgaEnableCursor();
-    setColor(0x07);
+    asm("cli");
 
-    screenFill(0, 0, 80, 25, ' ', 0x07);
+    char buffer[64];
 
+    // lock memory thats in use
+    uint8_t pb[0x1000]; // this only gives us access to the first 16mb of memory, we'll reallocate this later
+    pageBitmap.buffer = (uint8_t*)&pb;
+
+    lockPages(0, 256); // lock the first 1mb
+
+    lockPages(kernelStart, ((kernelEnd - kernelStart) >> 12) + 1);
+
+    mbiMap* memoryMap = getMbiEntry(mbi, mbir.memoryMap);
+    if (memoryMap->type != mbir.memoryMap) {cputs("Error: issue parsing mbi"); while (1) asm volatile("hlt");}
+
+    for (uint64_t i = 16; i < memoryMap->size; i += memoryMap->entrySize) {
+        if (((mapEntry*)(memoryMap + i))->type != memMap.free) {
+            lockPages(((mapEntry*)(memoryMap + i))->addr, (((mapEntry*)(memoryMap + i))->size >> 12) + 1);
+        }
+    }
+
+    // paging crap
+    
+
+    // IDT crap
     uint8_t idtrBuf[0x1000]; // TODO allocate this at runtime
     idtr.limit = 0x0fff;
-    idtr.offset = &idtrBuf;
+    idtr.offset = (uint64_t)&idtrBuf;
 
-    setIdtGate((void*)pageFaultHandler, 0xe, INTR, 0x08);
-    setIdtGate((void*)doubleFaultHandler, 0x8, INTR, 0x08);
-    setIdtGate((void*)genProcFaultHandler, 0xd, INTR, 0x08);
-    setIdtGate((void*)keyboardHandler, 0x21, INTR, 0x08);
+    setIdtGate((void *)pageFaultHandler, 0xe, INTR, 0x08);
+    setIdtGate((void *)doubleFaultHandler, 0x8, INTR, 0x08);
+    setIdtGate((void *)genProcFaultHandler, 0xd, INTR, 0x08);
+    setIdtGate((void *)keyboardHandler, 0x21, INTR, 0x08);
 
-    asm ("lidt %0" : : "m" (idtr));
+    asm("lidt %0" :: "m"(idtr));
 
     remapPic();
     outb(PIC1_DATA, 0b11111001);
     outb(PIC2_DATA, 0b11101111);
 
-    asm ("sti");
+    asm("sti");
+
+    // now we can do user stuffs
+    vgaEnableCursor();
+    setColor(0x07);
+
+    //screenFill(0, 0, 80, 25, ' ', 0x07);
 
     shell();
 
-    while (1) asm volatile ("hlt");
+    while (1) asm volatile("hlt");
 }

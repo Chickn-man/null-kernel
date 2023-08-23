@@ -23,6 +23,7 @@
 ##############################################################################
 */
 
+#include "memory.h"
 #include "conio.h"
 #include "screen.h"
 #include "video/vga.h"
@@ -106,7 +107,7 @@ void cputc(char c) {
 
 char cgetc() {
     char c = keyBuffer[0];
-    for (uint8_t i = 0; i < 15; i++) keyBuffer[i] = keyBuffer[i + 1];
+    memcpy(keyBuffer, keyBuffer + 1, 64);
     keyBuffer[63] = 0;
     return (c);
 }
@@ -116,7 +117,6 @@ void cputc2(char c) {
     if (c == '\n' || c == '\r') return;
 
     cputc(c);
-   
 }
 
 void clrscr() {

@@ -23,13 +23,15 @@
 ;##############################################################################
 
 global _start
-extern main
+extern main, mbi
 
 section .text
 
 [bits 32]
 
 _start:
+	; store multiboot information
+	mov [mbi], ebx
     ; house keeping
     mov esp, stack_top
     call check_multiboot

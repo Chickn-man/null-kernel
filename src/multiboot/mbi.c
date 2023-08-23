@@ -1,5 +1,5 @@
 /*
-#  string functions for the null Kernel
+#  Multiboot2 Information Parsing stuffs
 #
 ##############################################################################
 #
@@ -13,36 +13,29 @@
 #  version 3 of the License, or (at your option) any later version.
 #
 #  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY without even the implied warranty of
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
-#############################################################################
+##############################################################################
 */
 
-#ifndef _STRING2_H
-#define _STRING2_H
+#include "mbi.h"
 
-unsigned short strlen(char *string);
-void strcpy(char *dst, char *src);
-void strcat(char *dst, char *src);
-void strcatc(char *dst, char c);
-int strcmp(char *s1, char *s2);
-void strdelc(char *str);
-char *strchr(char *s, int c);
-char *strtok(char *s, char *delim);
-char *strupr(char *s);
-char *strlwr(char *s);
+const MBIR mbir = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+const MEMMAP memMap = {0, 1 ,3, 4, 5};
 
-char toupper(char c);
-char tolower(char c);
+// returns a pointer to the nth accurance of entry type "type"
+// returns null if entry of type "type" was not found
+void *getMbiEntry(void *mbi, uint32_t type) {
+    for (int i = 8; i < ((mbiFixed*)mbi)->size;) {
+        if (((mbiGeneric*)(mbi + i))->type == type) return (mbi + i);
 
-unsigned int hextoi(char *str);
-char *itohex(unsigned int num);
-int atoi(char *str);
-char *itoa(long int n, char *buffer, int radix);
+        i += (((mbiGeneric*)(mbi + i))->size + 0x7) & 0xfffffff8; // add the size to i after aligning it on an 8 byte boundary
+    }
 
-#endif
+    return 0;
+}

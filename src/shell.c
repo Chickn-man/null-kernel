@@ -47,7 +47,7 @@ void shell() {
 
             if (strlen(input) != 0) {
                 strcpy(command, strtok(input, " "));
-ANDAND:
+CHAIN:
                 if (strcmp(command, "cls") == 0) {
                     clrscr();
                 } else if (strcmp(command, "ascii") == 0) {
@@ -71,10 +71,10 @@ VERSION:            cputs("Null ");
                     cputs("command not found\n\r");
                 }
 
-                if (strcmp(strtok(0, " "), "&&") == 0) {strcpy(command, strtok(0, " ")); goto ANDAND;}
+                if (strcmp(strtok(0, " "), "&&") == 0) {strcpy(command, strtok(0, " ")); goto CHAIN;}
             }
-            for (int i = 0; i < 15; i++) input[i] = 0;
-            for (int i = 0; i < 15; i++) command[i] = 0;
+            for (int i = 0; i < 128; i++) input[i] = 0;
+            for (int i = 0; i < 128; i++) command[i] = 0;
              
             cputc('>');
         } else strcatc(input, c);

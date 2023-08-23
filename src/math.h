@@ -1,5 +1,5 @@
 /*
-#  string functions for the null Kernel
+#  math
 #
 ##############################################################################
 #
@@ -13,36 +13,40 @@
 #  version 3 of the License, or (at your option) any later version.
 #
 #  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY without even the implied warranty of
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
-#############################################################################
+##############################################################################
 */
 
-#ifndef _STRING2_H
-#define _STRING2_H
+#ifndef _MATH_H
+#define _MATH_H
 
-unsigned short strlen(char *string);
-void strcpy(char *dst, char *src);
-void strcat(char *dst, char *src);
-void strcatc(char *dst, char c);
-int strcmp(char *s1, char *s2);
-void strdelc(char *str);
-char *strchr(char *s, int c);
-char *strtok(char *s, char *delim);
-char *strupr(char *s);
-char *strlwr(char *s);
+#include <stdint.h>
+#include <stddef.h>
 
-char toupper(char c);
-char tolower(char c);
+double sqrt(double number);
+double rand();
+int roundd(double x);
 
-unsigned int hextoi(char *str);
-char *itohex(unsigned int num);
-int atoi(char *str);
-char *itoa(long int n, char *buffer, int radix);
+typedef struct {
+  size_t size;
+  uint8_t* buffer;
+} bitmap;
 
-#endif
+// returns the indexth bit of map
+// returns 255 if index too large
+// returns 254 if map is invalid
+uint8_t bitmapGet(uint64_t index, bitmap* map);
+
+// returns value if setting was succesful
+// returns 255 if index too large
+// returns 254 if map is invalid
+// returns 253 if value is invalid
+uint8_t bitmapSet(uint64_t index, bitmap* map, uint8_t value);
+
+#endif // !defined _MATH_H

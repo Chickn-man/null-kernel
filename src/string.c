@@ -210,7 +210,7 @@ void reverse(char *s, int length) {
 
 }
 
-char *itoa(int n, char *buffer, int radix) {
+char *itoa(long int n, char *buffer, int radix) {
     int i = 0;
     int isNegative = 0;
 

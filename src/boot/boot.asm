@@ -48,11 +48,6 @@ _start:
 	call enable_paging
 	lgdt [gdt.pointer]
 
-%ifdef DEBUG
-	mov esi, s_jump_to_long
-	call print
-%endif
-
 	jmp gdt.code:long_start
 
 halt:
@@ -158,12 +153,6 @@ s_hello: db "Booting...", 0
 s_no_multiboot: db "Error: not booted with multiboot", 0
 s_no_cpuid: db "Error: no cpuid", 0
 s_no_long_mode: db "Error: CPU is not 64 bit", 0
-
-; DEBUG meessages
-%ifdef DEBUG
-s_jump_to_long: db "Entering 64-bit code", 0
-%endif
-
 section .bss
 
 align 4096

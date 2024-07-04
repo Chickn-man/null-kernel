@@ -160,11 +160,11 @@ void *mapPage(void *paddr, void *vaddr, uint8_t rw) { // basically poncho's code
 
     char buffalo[64];
 
-    cputs("#! mapped 0x");
+    /*cputs("#! mapped 0x");
     cputs(itoa((long int)paddr, buffalo, 16));
     cputs(" to 0x");
     cputs(itoa((long int)vaddr, buffalo, 16));
-    cputs(" !#\n\r");
+    cputs(" !#\n\r");*/
 }
 
 void *mapPages(void *paddr, void *vaddr, uint64_t pages, uint8_t rw) {

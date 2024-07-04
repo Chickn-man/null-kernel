@@ -48,7 +48,6 @@ int main() {
     asm("cli");
 
     cputs("\n\r");
-    cputs("main()\n\r");
 
     char buffer[64];
 
@@ -71,8 +70,6 @@ int main() {
     }
 
     // map things
-    cputs("map pages\n\r");
-
     mapPages(0, 0, 256, 1); // map the first 1mb to itself
     mapPages(&kernelStart, &kernelStart, (uint64_t)((&kernelEnd - &kernelStart) >> 12) + 1, 1);
 
@@ -91,8 +88,6 @@ int main() {
     remapPic();
     outb(PIC1_DATA, 0b11111001);
     outb(PIC2_DATA, 0b11101111);
-
-    
 
     asm("sti");
 

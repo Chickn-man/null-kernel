@@ -38,7 +38,7 @@ LIBS =
 
 LDS = -T kernel.ld
 CFLAGS += $(LIBS) $(INCS) -O1 -nostdlib -ffreestanding -fno-stack-protector -DVERSION_REL=$(VERSION_REL) -DVERSION_MAJ=$(VERSION_MAJ) -DVERSION_MIN=$(VERSION_MIN) -DVERSION_FIX=$(VERSION_FIX)
-ASFLAGS += -f elf64 -dDEBUG
+ASFLAGS += -f elf64
 LDFLAGS += -static -nostdlib
 
 SRCDIR := src
@@ -95,10 +95,10 @@ clean:
 
 .PHONY: run
 run:
-	qemu-system-x86_64 -drive format=raw,file=$(BUILDDIR)/$(PROGNAME).iso -no-reboot -no-shutdown
+	qemu-system-x86_64 -drive format=raw,file=$(BUILDDIR)/$(PROGNAME).iso -no-reboot -no-shutdown -m 4g
 
 run-kvm:
 	qemu-system-x86_64 -drive format=raw,file=$(BUILDDIR)/$(PROGNAME).iso -no-reboot -no-shutdown -accel kvm -m 4g
 
 run-debug:
-	qemu-system-x86_64 -drive format=raw,file=$(BUILDDIR)/$(PROGNAME).iso -no-reboot -no-shutdown -d int -M smm=off
+	qemu-system-x86_64 -drive format=raw,file=$(BUILDDIR)/$(PROGNAME).iso -no-reboot -no-shutdown -m 4g -d int -M smm=off

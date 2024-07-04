@@ -83,7 +83,8 @@ void *unlockPages(void *paddr, uint64_t count);
 
 pageMapIndex getMapIndex(void *vaddr);
 
-extern PDE pageTable[];
+extern PDE *pageTable;
+extern PDE page_table_l4[];
 
 void *mapPage(void *paddr, void *vaddr, uint8_t rw);
 void *mapPages(void *paddr, void *vaddr, uint64_t pages, uint8_t rw);

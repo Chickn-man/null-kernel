@@ -101,17 +101,17 @@ pageMapIndex getMapIndex(void *vaddr) {
     ret.PDP = address & 0x1ff;
 }
 
-PDE pageTable[512];
-uint8_t thingy = 0; // past me: this is stupid | preset me: what does this do???
+PDE *pageTable = page_table_l4; // this shit fixed everything
+//uint8_t thingy = 0; // past me: this is stupid | preset me: what does this do???
 
 void *mapPage(void *paddr, void *vaddr, uint8_t rw) { // basically poncho's code | broken
     pageMapIndex index = getMapIndex(vaddr);
-    
+
     PDE pde = pageTable[index.PDP];
     PDE *pdp; // array of 512 entries
     if (!pde.p) {
         pdp = getPage();
-        //mapPage(pdp, pdp, 1);
+        mapPage(pdp, pdp, 1);
         if (!pdp) return 0;
         memset(pdp, 0, 0x1000);
         pde.addr = (uint64_t)pdp >> 12;
@@ -126,7 +126,7 @@ void *mapPage(void *paddr, void *vaddr, uint8_t rw) { // basically poncho's code
     PDE *pd; // array of 512 entries
     if (!pde.p) {
         pd = getPage();
-        //mapPage(pd, pd, 1);
+        mapPage(pd, pd, 1);
         if (!pd) return 0;
         memset(pd, 0, 0x1000);
         pde.addr = (uint64_t)pd >> 12;
@@ -141,7 +141,7 @@ void *mapPage(void *paddr, void *vaddr, uint8_t rw) { // basically poncho's code
     PDE *pt; // array of 512 entries
     if (!pde.p) {
         pt = getPage();
-        //mapPage(pt, pt, 1);
+        mapPage(pt, pt, 1);
         if (!pt) return 0;
         memset(pt, 0, 0x1000);
         pde.addr = (uint64_t)pt >> 12;
@@ -164,7 +164,7 @@ void *mapPage(void *paddr, void *vaddr, uint8_t rw) { // basically poncho's code
     cputs(itoa((long int)paddr, buffalo, 16));
     cputs(" to 0x");
     cputs(itoa((long int)vaddr, buffalo, 16));
-    cputs("!#\n\r");
+    cputs(" !#\n\r");
 }
 
 void *mapPages(void *paddr, void *vaddr, uint64_t pages, uint8_t rw) {

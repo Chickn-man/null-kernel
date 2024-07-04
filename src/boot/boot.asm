@@ -23,6 +23,7 @@
 ;##############################################################################
 
 global _start
+global page_table_l4
 extern main, mbi
 
 section .text

@@ -43,7 +43,7 @@ typedef struct {
     uint64_t addr : 41; // address
     uint64_t avl2 : 10; // available
     uint64_t xd : 1; // execute disable
-} __attribute__((packed)) PTE;
+} __attribute__((packed)) PDE;
 
 typedef struct {
     uint64_t PDP;
@@ -59,33 +59,35 @@ extern bitmap pageBitmap;
 // returns 0 if paddr is invalid
 // returns 1 if page is allready locked
 // returns 2 if page is outside of physical memory
-void* lockPage(void *paddr);
+void *lockPage(void *paddr);
 
 // locks count pages in physical memory starting at page containing paddr
 // returns paddr if pages was locked successfully
 // returns 0 if paddr is invalid
 // returns the address + 1 of the first page that is found locked (if any are locked)
 // returns the address + 2 of the first page that is found outside of physical memory (if any are outside)
-void* lockPages(void *paddr, uint64_t count);
+void *lockPages(void *paddr, uint64_t count);
 
 // unlocks page in physical memory containing paddr
 // returns paddr if page was unlocked successfully
 // returns 0 if paddr is invalid
 // returns 2 if page is outside of physical memory
-void* unlockPage(void *paddr);
+void *unlockPage(void *paddr);
 
 // unlocks count pages in physical memory starting at page containing paddr
 // returns paddr if pages was unlocked successfully
 // returns 0 if paddr is invalid
 // returns the address + 1 of the first page that is found locked (if any are locked)
 // returns the address + 2 of the first page that is found outside of physical memory (if any are outside)
-void* unlockPages(void *paddr, uint64_t count);
+void *unlockPages(void *paddr, uint64_t count);
 
-pageMapIndex getMapIndex(void* vaddr);
+pageMapIndex getMapIndex(void *vaddr);
 
-void mapPage(void* paddr, void* vaddr);
+extern PDE pageTable[];
 
+void *mapPage(void *paddr, void *vaddr, uint8_t rw);
+void *mapPages(void *paddr, void *vaddr, uint64_t pages, uint8_t rw);
 
-
+void *getPage();
 
 #endif // !defined _PAGING_PAGING_H

@@ -25,6 +25,9 @@
 
 #include "paging.h"
 #include "../math.h"
+#include "../memory.h"
+#include "../conio.h"
+#include "../string.h"
 
 bitmap pageBitmap;
 
@@ -33,7 +36,7 @@ bitmap pageBitmap;
 // returns 0 if paddr is invalid
 // returns 1 if page is allready locked
 // returns 2 if page is outside of physical memory
-void* lockPage(void *paddr) {
+void *lockPage(void *paddr) {
     uint64_t address = (uint64_t)paddr & 0xfffffffffffff000; 
     if (bitmapGet(address >> 12, &pageBitmap)) return (void*)1;
     // TODO check if page is outside of physical memory
@@ -46,7 +49,7 @@ void* lockPage(void *paddr) {
 // returns 0 if paddr is invalid
 // returns the address + 1 of the first page that is found locked (if any are locked)
 // returns the address + 2 of the first page that is found outside of physical memory (if any are outside)
-void* lockPages(void *paddr, uint64_t count) {
+void *lockPages(void *paddr, uint64_t count) {
     uint64_t address = (uint64_t)paddr & 0xfffffffffffff000; 
 
     for (int i = 0; i < count; i++) {
@@ -62,7 +65,7 @@ void* lockPages(void *paddr, uint64_t count) {
 // returns paddr if page was unlocked successfully
 // returns 0 if paddr is invalid
 // returns 2 if page is outside of physical memory
-void* unlockPage(void *paddr) {
+void *unlockPage(void *paddr) {
     uint64_t address = (uint64_t)paddr & 0xfffffffffffff000; 
     // TODO check if page is outside of physical memory
     bitmapSet(address >> 12, &pageBitmap, 0);
@@ -73,7 +76,7 @@ void* unlockPage(void *paddr) {
 // returns paddr if pages was unlocked successfully
 // returns 0 if paddr is invalid
 // returns the address + 2 of the first page that is found outside of physical memory (if any are outside)
-void* unlockPages(void *paddr, uint64_t count) {
+void *unlockPages(void *paddr, uint64_t count) {
     uint64_t address = (uint64_t)paddr & 0xfffffffffffff000; 
 
     for (int i = 0; i < count; i++) {
@@ -84,7 +87,7 @@ void* unlockPages(void *paddr, uint64_t count) {
     return paddr;
 }
 
-pageMapIndex getMapIndex(void* vaddr) {
+pageMapIndex getMapIndex(void *vaddr) {
     uint64_t address = (uint64_t)vaddr;
     address &= 0xfffffffffffff000;
     address >>= 12;
@@ -98,8 +101,85 @@ pageMapIndex getMapIndex(void* vaddr) {
     ret.PDP = address & 0x1ff;
 }
 
-void mapPage(void* paddr, void* vaddr) {
-    pageMapIndex index = getMapIndex(vaddr);
+PDE pageTable[512];
+uint8_t thingy = 0; // past me: this is stupid | preset me: what does this do???
 
+void *mapPage(void *paddr, void *vaddr, uint8_t rw) { // basically poncho's code | broken
+    pageMapIndex index = getMapIndex(vaddr);
     
+    PDE pde = pageTable[index.PDP];
+    PDE *pdp; // array of 512 entries
+    if (!pde.p) {
+        pdp = getPage();
+        //mapPage(pdp, pdp, 1);
+        if (!pdp) return 0;
+        memset(pdp, 0, 0x1000);
+        pde.addr = (uint64_t)pdp >> 12;
+        pde.p = 1;
+        pde.rw = 1;
+        pageTable[index.PDP] = pde;
+    } else {
+        pdp = (PDE *)(pde.addr << 12);
+    }
+
+    pde = pdp[index.PD];
+    PDE *pd; // array of 512 entries
+    if (!pde.p) {
+        pd = getPage();
+        //mapPage(pd, pd, 1);
+        if (!pd) return 0;
+        memset(pd, 0, 0x1000);
+        pde.addr = (uint64_t)pd >> 12;
+        pde.p = 1;
+        pde.rw = 1;
+        pdp[index.PD] = pde;
+    } else {
+        pd = (PDE *)(pde.addr << 12);
+    }
+
+    pde = pd[index.PT];
+    PDE *pt; // array of 512 entries
+    if (!pde.p) {
+        pt = getPage();
+        //mapPage(pt, pt, 1);
+        if (!pt) return 0;
+        memset(pt, 0, 0x1000);
+        pde.addr = (uint64_t)pt >> 12;
+        pde.p = 1;
+        pde.rw = 1;
+        pd[index.PT] = pde;
+    } else {
+        pt = (PDE *)(pde.addr << 12);
+    }
+
+    pde = pt[index.P];
+    pde.addr = (uint64_t)paddr >> 12;
+    pde.p = 1;
+    pde.rw = rw;
+    pt[index.P] = pde;
+
+    char buffalo[64];
+
+    cputs("#! mapped 0x");
+    cputs(itoa((long int)paddr, buffalo, 16));
+    cputs(" to 0x");
+    cputs(itoa((long int)vaddr, buffalo, 16));
+    cputs("!#\n\r");
+}
+
+void *mapPages(void *paddr, void *vaddr, uint64_t pages, uint8_t rw) {
+    for (uint64_t i = 0; i < pages; i++) {
+        mapPage((void *)((uint64_t)paddr + (i << 12)), (void *)((uint64_t)vaddr + (i << 12)), rw);
+    }
+}
+
+void *getPage() {
+    for (uint64_t i = 0; i < pageBitmap.size; i++) {
+        if (!bitmapGet(i, &pageBitmap)) {
+            lockPage((void *)(i << 12));
+            return (void *)(i << 12);
+        }
+    }
+    
+    return 0;
 }

@@ -32,14 +32,25 @@ section .text
 _start:
 	; store multiboot information
 	mov [mbi], ebx
+
     ; house keeping
     mov esp, stack_top
+    
     call check_multiboot
+
+    mov esi, s_hello
+    call print
+
     call check_cpuid
 	call check_long_mode
 	call setup_page_tables
 	call enable_paging
 	lgdt [gdt.pointer]
+
+%ifdef DEBUG
+	mov esi, s_jump_to_long
+	call print
+%endif
 
 	jmp gdt.code:long_start
 
@@ -99,7 +110,7 @@ setup_page_tables:
 	mov [page_table_l3], eax
 	mov ecx, 0 ; counter
 .loop:
-	mov eax, 0x200000 ; 2MiB
+	mov eax, 0x400000 ; 4MiB
 	mul ecx
 	or eax, 0b10000011 ; present, writable, huge page
 	mov [page_table_l2 + ecx * 8], eax
@@ -146,6 +157,12 @@ s_hello: db "Booting...", 0
 s_no_multiboot: db "Error: not booted with multiboot", 0
 s_no_cpuid: db "Error: no cpuid", 0
 s_no_long_mode: db "Error: CPU is not 64 bit", 0
+
+; DEBUG meessages
+%ifdef DEBUG
+s_jump_to_long: db "Entering 64-bit code", 0
+%endif
+
 section .bss
 
 align 4096

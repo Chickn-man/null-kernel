@@ -47,27 +47,34 @@ void *mbi;
 int main() {
     asm("cli");
 
+    cputs("\n\r");
+    cputs("main()\n\r");
+
     char buffer[64];
 
     // lock memory thats in use
-    uint8_t pb[0x1000]; // this only gives us access to the first 16mb of memory, we'll reallocate this later
+    uint8_t pb[0x200]; // this only gives us access to the first 2mb of memory, we'll reallocate this later
+    pageBitmap.size = 0x1000;
     pageBitmap.buffer = (uint8_t*)&pb;
 
     lockPages(0, 256); // lock the first 1mb
 
     lockPages(kernelStart, ((kernelEnd - kernelStart) >> 12) + 1);
 
-    mbiMap* memoryMap = getMbiEntry(mbi, mbir.memoryMap);
+    mbiMap *memoryMap = getMbiEntry(mbi, mbir.memoryMap);
     if (memoryMap->type != mbir.memoryMap) {cputs("Error: issue parsing mbi"); while (1) asm volatile("hlt");}
 
     for (uint64_t i = 16; i < memoryMap->size; i += memoryMap->entrySize) {
         if (((mapEntry*)(memoryMap + i))->type != memMap.free) {
-            lockPages(((mapEntry*)(memoryMap + i))->addr, (((mapEntry*)(memoryMap + i))->size >> 12) + 1);
+            lockPages((void *)(((mapEntry*)(memoryMap + i))->addr), (((mapEntry*)(memoryMap + i))->size >> 12) + 1);
         }
     }
 
-    // paging crap
-    
+    // map things
+    cputs("map pages\n\r");
+
+    mapPages(0, 0, 256, 1); // map the first 1mb to itself
+    mapPages(&kernelStart, &kernelStart, (uint64_t)((&kernelEnd - &kernelStart) >> 12) + 1, 1);
 
     // IDT crap
     uint8_t idtrBuf[0x1000]; // TODO allocate this at runtime
@@ -84,6 +91,8 @@ int main() {
     remapPic();
     outb(PIC1_DATA, 0b11111001);
     outb(PIC2_DATA, 0b11101111);
+
+    
 
     asm("sti");
 

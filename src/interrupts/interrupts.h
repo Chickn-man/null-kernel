@@ -46,11 +46,11 @@ typedef struct {
   uint64_t offset;
 } __attribute__((packed)) IDTR;
 
-void setIdtOffset(IDTEntry* entry, uint64_t offset);
-uint64_t getIdtOffset(IDTEntry* entry);
+void setIdtOffset(IDTEntry *entry, uint64_t offset);
+uint64_t getIdtOffset(IDTEntry *entry);
 
 extern IDTR idtr;
-void setIdtGate(void* handler, uint8_t offset, uint8_t type_attr, uint8_t selector);
+void setIdtGate(void *handler, uint8_t offset, uint8_t type_attr, uint8_t selector);
 
 
 #endif // !defined _INTERUPTS_INTERUPTS_H

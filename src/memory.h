@@ -26,6 +26,9 @@
 #ifndef _MEMORY_H
 #define _MEMORY_H
 
-void memcpy(unsigned char *dst, unsigned char *src, int len);
+#include <stdint.h>
+
+void memcpy(void *dst, void *src, uint64_t len);
+void *memset(void *addr, int value, uint64_t len);
 
 #endif

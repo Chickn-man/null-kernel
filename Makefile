@@ -26,7 +26,7 @@ PROGNAME = null
 
 VERSION_REL = 0
 VERSION_MAJ = 1
-VERSION_MIN = 0
+VERSION_MIN = 1
 VERSION_FIX = 0
 
 CC = gcc
@@ -37,9 +37,9 @@ INCS =
 LIBS = 
 
 LDS = -T kernel.ld
-CFLAGS = $(LIBS) $(INCS) -O1 -nostdlib -ffreestanding -fno-stack-protector -DVERSION_REL=$(VERSION_REL) -DVERSION_MAJ=$(VERSION_MAJ) -DVERSION_MIN=$(VERSION_MIN) -DVERSION_FIX=$(VERSION_FIX)
-ASFLAGS = -f elf64
-LDFLAGS = -static -nostdlib
+CFLAGS += $(LIBS) $(INCS) -O1 -nostdlib -ffreestanding -fno-stack-protector -DVERSION_REL=$(VERSION_REL) -DVERSION_MAJ=$(VERSION_MAJ) -DVERSION_MIN=$(VERSION_MIN) -DVERSION_FIX=$(VERSION_FIX)
+ASFLAGS += -f elf64 -dDEBUG
+LDFLAGS += -static -nostdlib
 
 SRCDIR := src
 OBJDIR := lib
@@ -97,7 +97,7 @@ clean:
 run:
 	qemu-system-x86_64 -drive format=raw,file=$(BUILDDIR)/$(PROGNAME).iso -no-reboot -no-shutdown
 
-run:
+run-kvm:
 	qemu-system-x86_64 -drive format=raw,file=$(BUILDDIR)/$(PROGNAME).iso -no-reboot -no-shutdown -accel kvm -m 4g
 
 run-debug:

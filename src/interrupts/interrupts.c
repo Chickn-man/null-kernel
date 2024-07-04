@@ -27,13 +27,13 @@
 
 #include <stdint.h>
 
-void setIdtOffset(IDTEntry* entry, uint64_t offset) {
+void setIdtOffset(IDTEntry *entry, uint64_t offset) {
     entry->offset0 = (uint16_t)(offset & 0x000000000000ffff);
     entry->offset1 = (uint16_t)((offset & 0x00000000ffff0000) >> 16);
     entry->offset2 = (uint32_t)((offset & 0xffffffff00000000) >> 32);
 }
 
-uint64_t getIdtOffset(IDTEntry* entry) {
+uint64_t getIdtOffset(IDTEntry *entry) {
     uint64_t offset = 0;
     offset |= (uint64_t)entry->offset0;
     offset |= (uint64_t)entry->offset1 << 16;
@@ -42,7 +42,7 @@ uint64_t getIdtOffset(IDTEntry* entry) {
 }
 
 IDTR idtr;
-void setIdtGate(void* handler, uint8_t offset, uint8_t type_attr, uint8_t selector) {
+void setIdtGate(void *handler, uint8_t offset, uint8_t type_attr, uint8_t selector) {
   IDTEntry* interrupt = (IDTEntry*)(idtr.offset + (offset * sizeof(IDTEntry)));
   setIdtOffset(interrupt, (uint64_t)handler);
   interrupt->type_attr = type_attr;

@@ -50,10 +50,12 @@ void shell() {
 CHAIN:
                 if (strcmp(command, "cls") == 0) {
                     clrscr();
+
                 } else if (strcmp(command, "ascii") == 0) {
                     for (int i = 0; i < 255; i++) cputc2(i);
                     cputc('\n');
                     cputc('\r');
+
                 } else if (strcmp(command, "version") == 0) {
 VERSION:            cputs("Null ");
                     cputs(itoa(VERSION_REL, buffer, 10));
@@ -65,8 +67,20 @@ VERSION:            cputs("Null ");
                     cputs(itoa(VERSION_FIX, buffer, 10));
                     cputc('\n');
                     cputc('\r');
+
                 } else if (strcmp(command, "ver") == 0) {
                     goto VERSION;
+
+                } else if (strcmp(command, "peek") == 0) {
+                    // grab address from input, read value at addr and print value in hex
+                    cputs(itoa(*(unsigned char*)hextoi(strtok(0, " ")), buffer, 16));
+                    cputc('\n');
+                    cputc('\r');
+
+                } else if (strcmp(command, "poke") == 0) {
+                    // grab address from input, grab hex value from input, and write value to address
+                    *(unsigned char *)hextoi(strtok(0, " ")) = (unsigned char)hextoi(strtok(0, " "));
+
                 } else {
                     cputs("command not found\n\r");
                 }
@@ -77,6 +91,7 @@ VERSION:            cputs("Null ");
             for (int i = 0; i < 128; i++) command[i] = 0;
              
             cputc('>');
+            
         } else strcatc(input, c);
     }
 }

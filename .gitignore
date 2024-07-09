@@ -3,3 +3,5 @@ bin/
 lib/
 iso/null-kernel
 bochs.cfg
+iso/null-kernel
+bochs-gdb.cfg

@@ -1,5 +1,5 @@
 /*
-#  math
+#  serial debuging functions for the null Kernel
 #
 ##############################################################################
 #
@@ -23,34 +23,24 @@
 ##############################################################################
 */
 
-#ifndef _MATH_H
-#define _MATH_H
+#ifndef _SERIAL_DEBUG_H
+#define _SERIAL_DEBUG_H
 
-#define GET_BIT(n, b) (n >> b) & 1
-#define SET_BIT(n, b) n |= (1 << n)
-#define UNSET_BIT(n, b) n &= (0 << n)
+#define SERIAL_PORT 0x3f8
 
-#include <stdint.h>
-#include <stddef.h>
+int s_wherex();
+int s_wherey();
+void s_gotox(int x);
+void s_gotoy(int y);
+void s_gotoxy(int x, int y);
 
-double sqrt(double number);
-double rand();
-int roundd(double x);
+void s_cputs(char *s);
+void s_cputc(char c);
+void s_cputc2(char c);
+char s_cgetc();
 
-typedef struct {
-  size_t size;
-  uint8_t* buffer;
-} bitmap;
+void s_clrscr();
 
-// returns the indexth bit of map
-// returns 255 if index too large
-// returns 254 if map is invalid
-uint8_t bitmapGet(uint64_t index, bitmap* map);
+int init_serial();
 
-// returns value if setting was succesful
-// returns 255 if index too large
-// returns 254 if map is invalid
-// returns 253 if value is invalid
-uint8_t bitmapSet(uint64_t index, bitmap* map, uint8_t value);
-
-#endif // !defined _MATH_H
+#endif // !defined _SERIAL_DEBUG_Hs_

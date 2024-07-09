@@ -99,63 +99,63 @@ pageMapIndex getMapIndex(void *vaddr) {
     ret.PD = address & 0x1ff;
     address >>= 9;
     ret.PDP = address & 0x1ff;
+    return ret;
 }
 
-PDE *pageTable = page_table_l4; // this shit fixed everything
-//uint8_t thingy = 0; // past me: this is stupid | preset me: what does this do???
+uint64_t *pageTable = page_table_l4; // this shit fixed everything
 
 void *mapPage(void *paddr, void *vaddr, uint8_t rw) { // basically poncho's code | broken
     pageMapIndex index = getMapIndex(vaddr);
 
-    PDE pde = pageTable[index.PDP];
-    PDE *pdp; // array of 512 entries
-    if (!pde.p) {
+    uint64_t pde = pageTable[index.PDP];
+    uint64_t *pdp; // array of 512 entries
+    if (!GET_BIT(pde, 0)) {
         pdp = getPage();
-        mapPage(pdp, pdp, 1);
         if (!pdp) return 0;
+        mapPage(pdp, pdp, 1);
         memset(pdp, 0, 0x1000);
-        pde.addr = (uint64_t)pdp >> 12;
-        pde.p = 1;
-        pde.rw = 1;
+        pde = setPdeAddress(pde, (uint64_t)pdp >> 12);
+        SET_BIT(pde, 0);
+        SET_BIT(pde, 1);
         pageTable[index.PDP] = pde;
     } else {
-        pdp = (PDE *)(pde.addr << 12);
+        pdp = (uint64_t *)(getPdeAddress(pde) << 12);
     }
 
     pde = pdp[index.PD];
-    PDE *pd; // array of 512 entries
-    if (!pde.p) {
+    uint64_t *pd; // array of 512 entries
+    if (!GET_BIT(pde, 0)) {
         pd = getPage();
+        if (!pdp) return 0;
         mapPage(pd, pd, 1);
-        if (!pd) return 0;
         memset(pd, 0, 0x1000);
-        pde.addr = (uint64_t)pd >> 12;
-        pde.p = 1;
-        pde.rw = 1;
+        pde = setPdeAddress(pde, (uint64_t)pd >> 12);
+        SET_BIT(pde, 0);
+        SET_BIT(pde, 1);
         pdp[index.PD] = pde;
     } else {
-        pd = (PDE *)(pde.addr << 12);
+        pd = (uint64_t *)(getPdeAddress(pde) << 12);
     }
 
     pde = pd[index.PT];
-    PDE *pt; // array of 512 entries
-    if (!pde.p) {
+    uint64_t *pt; // array of 512 entries
+    if (!GET_BIT(pde, 0)) {
         pt = getPage();
+        if (!pdp) return 0;
         mapPage(pt, pt, 1);
-        if (!pt) return 0;
         memset(pt, 0, 0x1000);
-        pde.addr = (uint64_t)pt >> 12;
-        pde.p = 1;
-        pde.rw = 1;
+        pde = setPdeAddress(pde, (uint64_t)pt >> 12);
+        SET_BIT(pde, 0);
+        SET_BIT(pde, 1);
         pd[index.PT] = pde;
     } else {
-        pt = (PDE *)(pde.addr << 12);
+        pt = (uint64_t *)(getPdeAddress(pde) << 12);
     }
 
     pde = pt[index.P];
-    pde.addr = (uint64_t)paddr >> 12;
-    pde.p = 1;
-    pde.rw = rw;
+    pde = setPdeAddress(pde, (uint64_t)paddr >> 12);
+    SET_BIT(pde, 0);
+    if (rw) SET_BIT(pde, 1);
     pt[index.P] = pde;
 
     char buffalo[64];
@@ -182,4 +182,15 @@ void *getPage() {
     }
     
     return 0;
+}
+
+uint64_t getPdeAddress(uint64_t pde){
+    return (pde & 0x000ffffffffff000) >> 12;
+}
+
+uint64_t setPdeAddress(uint64_t pde, uint64_t address){
+    address &= 0x000000ffffffffff;
+    pde &= 0xfff0000000000fff;
+    pde |= (address << 12);
+    return pde;
 }

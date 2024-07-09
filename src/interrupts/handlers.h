@@ -23,11 +23,14 @@
 #############################################################################
 */
 
+#include <stdint.h>
+#include <stddef.h>
+
 #ifndef _INTERRUPTS_HANDLERS_H
 #define _INTERRUPTS_HANDLERS_H
 
 struct interruptFrame;
-__attribute__((interrupt)) void pageFaultHandler(struct interruptFrame* frame);
+__attribute__((interrupt)) void pageFaultHandler(struct interruptFrame* frame, uint64_t error);
 __attribute__((interrupt)) void doubleFaultHandler(struct interruptFrame* frame);
 __attribute__((interrupt)) void genProcFaultHandler(struct interruptFrame* frame);
 __attribute__((interrupt)) void keyboardHandler(struct interruptFrame* frame);

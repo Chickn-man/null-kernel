@@ -26,6 +26,7 @@
 #include "multiboot/mbi.h"
 
 #include "conio.h"
+#include "serial.h"
 #include "string.h"
 #include "screen.h"
 #include "video/vga.h"
@@ -44,19 +45,56 @@ extern void *kernelEnd;
 
 void *mbi;
 
+void print_page_map(uint64_t *pml4_base) {
+    for (int pml4_index = 0; pml4_index < 512; pml4_index++) {
+        if (pml4_base[pml4_index] & 1) { // Check if entry is present
+            uint64_t *pdpt_base = (uint64_t *)(pml4_base[pml4_index] & ~0xFFF);
+            for (int pdpt_index = 0; pdpt_index < 512; pdpt_index++) {
+                if (pdpt_base[pdpt_index] & 1) { // Check if entry is present
+                    uint64_t *pd_base = (uint64_t *)(pdpt_base[pdpt_index] & ~0xFFF);
+                    for (int pd_index = 0; pd_index < 512; pd_index++) {
+                        if (pd_base[pd_index] & 1) { // Check if entry is present
+                            uint64_t *pt_base = (uint64_t *)(pd_base[pd_index] & ~0xFFF);
+                            for (int pt_index = 0; pt_index < 512; pt_index++) {
+                                if (pt_base[pt_index] & 1) { // Check if entry is present
+                                    char address_str[17];
+                                    char size_str[17];
+                                    
+                                    uint64_t address = (pml4_index << 39) | (pdpt_index << 30) | (pd_index << 21) | (pt_index << 12);
+                                    uint64_t size = 4096; // Each page is 4KB
+
+                                    s_cputs("Address: 0x");
+                                    s_cputs(itoa(address, address_str, 16));
+                                    s_cputs(", Size: 0x");
+                                    s_cputs(itoa(size, size_str, 16));
+                                    s_cputs("\r\n");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 int main() {
     asm("cli");
+
+    init_serial();
 
     cputs("\n\r");
 
     char buffer[64];
 
+    uint64_t* pt = page_table_l4;
+
     // lock memory thats in use
-    uint8_t pb[0x200]; // this only gives us access to the first 2mb of memory, we'll reallocate this later
-    pageBitmap.size = 0x1000;
+    uint8_t pb[0x800]; // this only gives us access to the first 8mb of memory, we'll reallocate this later
+    pageBitmap.size = 0x4000;
     pageBitmap.buffer = (uint8_t*)&pb;
 
-    lockPages(0, 256); // lock the first 1mb
+    lockPages(0, 1000); // lock the first 4mb
 
     lockPages(kernelStart, ((kernelEnd - kernelStart) >> 12) + 1);
 
@@ -70,8 +108,8 @@ int main() {
     }
 
     // map things
-    mapPages(0, 0, 256, 1); // map the first 1mb to itself
-    mapPages(&kernelStart, &kernelStart, (uint64_t)((&kernelEnd - &kernelStart) >> 12) + 1, 1);
+    mapPages(0, 0, 1024, 1); // map the first 4mb to itself
+    //mapPages(&kernelStart, &kernelStart, (uint64_t)((&kernelEnd - &kernelStart) >> 12) + 1, 1);
 
     // IDT crap
     uint8_t idtrBuf[0x1000]; // TODO allocate this at runtime
@@ -90,6 +128,23 @@ int main() {
     outb(PIC2_DATA, 0b11101111);
 
     asm("sti");
+
+    s_cputs("Hello, Serial!\n\r");
+
+    //mapPage((void *)0x400000000, (void *)0x400000000, 1);
+    //print_page_map(page_table_l4);
+
+
+    /*mbiFramebuffer *mbFramebuffer = getMbiEntry(mbi, mbir.fb);
+    if (mbFramebuffer) {
+        lockPage(mbFramebuffer->buffer);
+        mapPage(mbFramebuffer->buffer, mbFramebuffer->buffer, 1);
+        //asm("cli");
+        //asm volatile("hlt");
+        //asm("sti");
+        mbFramebuffer->buffer[1] = 0xffffffff;
+        cputs("fb\n\r");
+    }*/
 
     // now we can do user stuffs
     vgaEnableCursor();

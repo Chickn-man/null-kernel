@@ -39,6 +39,7 @@ void shell() {
 
     while (1) {
         c = cgetc();
+        if (!c) continue;
         if (c == '\b') strdelc(input), cputs("\b \b"), c = 0; else cputc(c);
 
         if (c == '\r' || c == '\n') {

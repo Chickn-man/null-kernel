@@ -43,7 +43,7 @@ typedef struct {
     uint64_t addr : 41; // address
     uint64_t avl2 : 10; // available
     uint64_t xd : 1; // execute disable
-} __attribute__((packed)) PDE;
+} __attribute__((packed)) PDE_old; //stuct not used
 
 typedef struct {
     uint64_t PDP;
@@ -83,12 +83,15 @@ void *unlockPages(void *paddr, uint64_t count);
 
 pageMapIndex getMapIndex(void *vaddr);
 
-extern PDE *pageTable;
-extern PDE page_table_l4[];
+extern uint64_t *pageTable;
+extern uint64_t page_table_l4[];
 
 void *mapPage(void *paddr, void *vaddr, uint8_t rw);
 void *mapPages(void *paddr, void *vaddr, uint64_t pages, uint8_t rw);
 
 void *getPage();
+
+uint64_t getPdeAddress(uint64_t pde);
+uint64_t setPdeAddress(uint64_t pde, uint64_t address);
 
 #endif // !defined _PAGING_PAGING_H

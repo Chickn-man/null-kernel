@@ -13,6 +13,15 @@ header_start:
     dd 12 ; size
     dd 0x3 ; console_flags (ega text mode)
 
+    ;align 8
+    ; framebuffer tag
+    ;dw 5 ; type
+    ;dw 0 ; flags
+    ;dd 20 ; size
+    ;dd 0 ; prefered width (0 means no preference)
+    ;dd 0 ; prefered height (0 means no preference)
+    ;dd 0 ; prefered depth (0 means no preference)
+
     align 8
     ; end tag
 	dw 0 ; type

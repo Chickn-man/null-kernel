@@ -26,7 +26,7 @@ PROGNAME = null
 
 VERSION_REL = 0
 VERSION_MAJ = 1
-VERSION_MIN = 1
+VERSION_MIN = 2
 VERSION_FIX = 0
 
 CC = gcc
@@ -37,8 +37,8 @@ INCS =
 LIBS = 
 
 LDS = -T kernel.ld
-CFLAGS += $(LIBS) $(INCS) -O1 -nostdlib -ffreestanding -fno-stack-protector -DVERSION_REL=$(VERSION_REL) -DVERSION_MAJ=$(VERSION_MAJ) -DVERSION_MIN=$(VERSION_MIN) -DVERSION_FIX=$(VERSION_FIX)
-ASFLAGS += -f elf64
+CFLAGS += $(LIBS) $(INCS) -g -O0 -nostdlib -ffreestanding -fno-stack-protector -DVERSION_REL=$(VERSION_REL) -DVERSION_MAJ=$(VERSION_MAJ) -DVERSION_MIN=$(VERSION_MIN) -DVERSION_FIX=$(VERSION_FIX)
+ASFLAGS += -f elf64 -g -F dwarf
 LDFLAGS += -static -nostdlib
 
 SRCDIR := src
@@ -95,10 +95,13 @@ clean:
 
 .PHONY: run
 run:
-	qemu-system-x86_64 -drive format=raw,file=$(BUILDDIR)/$(PROGNAME).iso -no-reboot -no-shutdown -m 4g
+	qemu-system-x86_64 -drive format=raw,file=$(BUILDDIR)/$(PROGNAME).iso -no-reboot -no-shutdown -m 4g -serial stdio -s -S
 
 run-kvm:
-	qemu-system-x86_64 -drive format=raw,file=$(BUILDDIR)/$(PROGNAME).iso -no-reboot -no-shutdown -accel kvm -m 4g
+	qemu-system-x86_64 -drive format=raw,file=$(BUILDDIR)/$(PROGNAME).iso -no-reboot -no-shutdown -accel kvm -m 4g -s -S
 
 run-debug:
-	qemu-system-x86_64 -drive format=raw,file=$(BUILDDIR)/$(PROGNAME).iso -no-reboot -no-shutdown -m 4g -d int -M smm=off
+	qemu-system-x86_64 -drive format=raw,file=$(BUILDDIR)/$(PROGNAME).iso -no-reboot -no-shutdown -m 4g -d int -M smm=off -s -S
+
+run-efi-debug:
+	qemu-system-x86_64 -bios /usr/share/ovmf/x64/OVMF_CODE.fd -drive format=raw,file=$(BUILDDIR)/$(PROGNAME).iso -no-reboot -no-shutdown -m 4g -d int -M smm=off -s -S

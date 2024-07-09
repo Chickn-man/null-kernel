@@ -107,7 +107,8 @@ void cputc(char c) {
 
 char cgetc() {
     char c = keyBuffer[0];
-    memcpy(keyBuffer, keyBuffer + 1, 64);
+    if (!c) return c;
+    memcpy(keyBuffer, keyBuffer + 1, 62);
     keyBuffer[63] = 0;
     return (c);
 }

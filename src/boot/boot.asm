@@ -101,17 +101,27 @@ setup_page_tables:
 	mov eax, page_table_l3
 	or eax, 0b11 ; present, writable
 	mov [page_table_l4], eax
+
 	mov eax, page_table_l2
 	or eax, 0b11 ; present, writable
 	mov [page_table_l3], eax
+
+	mov eax, page_table_l1
+	or eax, 0b11 ; present, writable
+	mov [page_table_l2], eax
+
+	mov eax, page_table_l1 + 0x1000
+	or eax, 0b11 ; present, writable
+	mov [page_table_l2 + 8], eax
+
 	mov ecx, 0 ; counter
-.loop:
-	mov eax, 0x400000 ; 4MiB
+.loop: ; this maps 4MiB using 4KiB pages, it creates 512 entries in two page tables
+	mov eax, 0x1000 ; 4KiB
 	mul ecx
-	or eax, 0b10000011 ; present, writable, huge page
-	mov [page_table_l2 + ecx * 8], eax
+	or eax, 0b00000011 ; present, writable
+	mov [page_table_l1 + ecx * 8], eax
 	inc ecx ; increment counter
-	cmp ecx, 512 ; checks if the whole table is mapped
+	cmp ecx, 1024 ; checks if both tables are mapped
 	jne .loop ; if not, continue
 	ret
 
@@ -119,21 +129,26 @@ enable_paging:
 	; pass page table location to cpu
 	mov eax, page_table_l4
 	mov cr3, eax
+
 	; enable PAE
 	mov eax, cr4
 	or eax, 1 << 5
+	and eax, ~(1 << 12)
 	mov cr4, eax
+
 	; enable long mode
 	mov ecx, 0xC0000080
 	rdmsr
 	or eax, 1 << 8
 	wrmsr
+
 	; enable paging
 	mov eax, cr0
 	or eax, 1 << 31
 	mov cr0, eax
 	ret
 
+; this early output will only work if the bootloader setup ega text mode
 print: ; puts string in esi on the screen 
     mov edi, 0xb8000
 .loop: 
@@ -162,6 +177,8 @@ page_table_l3:
 	resb 4096
 page_table_l2:
 	resb 4096
+page_table_l1:
+	resb 4096 * 2
 stack_bottom:
 	resb 4096 * 4
 stack_top:

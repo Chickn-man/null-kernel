@@ -1,5 +1,5 @@
 /*
-#  conio functions for the null Kernel
+#  serial debuging functions for the null Kernel
 #
 ##############################################################################
 #

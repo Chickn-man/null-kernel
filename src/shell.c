@@ -28,6 +28,21 @@
 #include "io/hid/keyboard.h"
 #include "string.h"
 
+#define STRINGIZE(foo) #foo
+#define S(bar) STRINGIZE(bar)
+#define VER_TEXT "Null " S(VERSION_REL) "." S(VERSION_MAJ) "." S(VERSION_MIN) "." S(VERSION_FIX) "\n\r"
+#define HELP_TEXT "Null " S(VERSION_REL) "." S(VERSION_MAJ) "." S(VERSION_MIN) "." S(VERSION_FIX) "\n\r" \
+"Builtin Kernel Shell\n\n\r" \
+"Commands:\n\r"\
+"help : print this help\n\r" \
+"cls : clear screen\n\r" \
+"version/ver : print kernel version\n\r" \
+"ascii : print all ascii characters\n\r" \
+"peek [address] : print byte at address, raw hex value\n\r" \
+"peek [byte] [address] : store byte at address, raw hex values\n\r" \
+"\n\r"
+
+
 void shell() {
     char c;
 
@@ -35,7 +50,9 @@ void shell() {
     char input[128];
     char command[128];
 
-    goto VERSION;
+    clrscr();
+    cputs(HELP_TEXT);
+    cputc('>');
 
     while (1) {
         c = cgetc();
@@ -49,7 +66,10 @@ void shell() {
             if (strlen(input) != 0) {
                 strcpy(command, strtok(input, " "));
 CHAIN:
-                if (strcmp(command, "cls") == 0) {
+                if (strcmp(command, "help") == 0) {
+                    cputs(HELP_TEXT);
+
+                } else if (strcmp(command, "cls") == 0) {
                     clrscr();
 
                 } else if (strcmp(command, "ascii") == 0) {
@@ -58,16 +78,7 @@ CHAIN:
                     cputc('\r');
 
                 } else if (strcmp(command, "version") == 0) {
-VERSION:            cputs("Null ");
-                    cputs(itoa(VERSION_REL, buffer, 10));
-                    cputc('.');
-                    cputs(itoa(VERSION_MAJ, buffer, 10));
-                    cputc('.');
-                    cputs(itoa(VERSION_MIN, buffer, 10));
-                    cputc('.');
-                    cputs(itoa(VERSION_FIX, buffer, 10));
-                    cputc('\n');
-                    cputc('\r');
+VERSION:            cputs(VER_TEXT);
 
                 } else if (strcmp(command, "ver") == 0) {
                     goto VERSION;

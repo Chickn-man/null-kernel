@@ -24,6 +24,7 @@ Want to contribute? Great!\.\.\. why?
 ### Building from source
 
 run `make`
+
 `make run` to run in qemu
 
 requires gcc to compile

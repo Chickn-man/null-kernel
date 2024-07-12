@@ -5,12 +5,12 @@
 .vscode/
 
 # Project Stuff
+fonts/
 bin/
 lib/
 iso/null-kernel
 bochs.cfg
 bochs-gdb.cfg
-font.psf
 
 # Generic
 *.bin

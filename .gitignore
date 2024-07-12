@@ -1,9 +1,21 @@
+# OS Files
+.DS_Store
+
+# IDE Files
 .vscode/
+
+# Project Stuff
 bin/
 lib/
 iso/null-kernel
 bochs.cfg
 bochs-gdb.cfg
+font.psf
 
+# Generic
 *.bin
 *.img
+*.iso
+*.o
+*.a
+*.exe

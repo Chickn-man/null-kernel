@@ -45,45 +45,12 @@ extern void *kernelEnd;
 
 void *mbi;
 
-void print_page_map(uint64_t *pml4_base) {
-    for (int pml4_index = 0; pml4_index < 512; pml4_index++) {
-        if (pml4_base[pml4_index] & 1) { // Check if entry is present
-            uint64_t *pdpt_base = (uint64_t *)(pml4_base[pml4_index] & ~0xFFF);
-            for (int pdpt_index = 0; pdpt_index < 512; pdpt_index++) {
-                if (pdpt_base[pdpt_index] & 1) { // Check if entry is present
-                    uint64_t *pd_base = (uint64_t *)(pdpt_base[pdpt_index] & ~0xFFF);
-                    for (int pd_index = 0; pd_index < 512; pd_index++) {
-                        if (pd_base[pd_index] & 1) { // Check if entry is present
-                            uint64_t *pt_base = (uint64_t *)(pd_base[pd_index] & ~0xFFF);
-                            for (int pt_index = 0; pt_index < 512; pt_index++) {
-                                if (pt_base[pt_index] & 1) { // Check if entry is present
-                                    char address_str[17];
-                                    char size_str[17];
-                                    
-                                    uint64_t address = (pml4_index << 39) | (pdpt_index << 30) | (pd_index << 21) | (pt_index << 12);
-                                    uint64_t size = 4096; // Each page is 4KB
-
-                                    s_cputs("Address: 0x");
-                                    s_cputs(itoa(address, address_str, 16));
-                                    s_cputs(", Size: 0x");
-                                    s_cputs(itoa(size, size_str, 16));
-                                    s_cputs("\r\n");
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
 int main() {
     asm("cli");
 
     init_serial();
 
-    cputs("\n\r");
+    //cputs("\n\r");
 
     char buffer[64];
 
@@ -135,24 +102,24 @@ int main() {
     //print_page_map(page_table_l4);
 
 
-    /*mbiFramebuffer *mbFramebuffer = getMbiEntry(mbi, mbir.fb);
-    if (mbFramebuffer) {
+    mbiFramebuffer *mbFramebuffer = getMbiEntry(mbi, mbir.fb);
+    if (mbFramebuffer->fbType == 1) {
         lockPage(mbFramebuffer->buffer);
         mapPage(mbFramebuffer->buffer, mbFramebuffer->buffer, 1);
         //asm("cli");
         //asm volatile("hlt");
         //asm("sti");
-        mbFramebuffer->buffer[1] = 0xffffffff;
-        cputs("fb\n\r");
-    }*/
+        mbFramebuffer->buffer[0] = 0xffffff;
+        //cputs("fb\n\r");
+    }
 
     // now we can do user stuffs
-    vgaEnableCursor();
-    setColor(0x07);
+    //vgaEnableCursor();
+    //setColor(0x07);
 
     //screenFill(0, 0, 80, 25, ' ', 0x07);
 
-    shell();
+    //shell(); disable shell since we have no display yet
 
     while (1) asm volatile("hlt");
 }

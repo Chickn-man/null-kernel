@@ -39,7 +39,7 @@
 "version/ver : print kernel version\n\r" \
 "ascii : print all ascii characters\n\r" \
 "peek [address] : print byte at address, raw hex value\n\r" \
-"peek [byte] [address] : store byte at address, raw hex values\n\r" \
+"poke [byte] [address] : store byte at address, raw hex values\n\r" \
 "\n\r"
 
 

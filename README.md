@@ -27,4 +27,5 @@ run `make`
 `make run` to run in qemu
 
 requires gcc to compile
+
 requires grub(utils), xorriso, and mtools to build a bootable image

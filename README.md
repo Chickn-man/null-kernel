@@ -8,7 +8,7 @@ it doesnt do anything (yet)
 ### Features
 
 - 
-
+<!--- peek poke --->
 
 ### Installation
 
@@ -24,5 +24,7 @@ Want to contribute? Great!\.\.\. why?
 ### Building from source
 
 run `make`
+`make run` to run in qemu
 
-requires grub, xorriso, and gcc
+requires gcc to compile
+requires grub(utils), xorriso, and mtools to build a bootable image

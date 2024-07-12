@@ -24,13 +24,12 @@
 */
 
 #include "handlers.h"
-#include "../serial.h"
+#include "../conio.h"
 #include "../io/pic.h"
 #include "../string.h"
 
 __attribute__((interrupt)) void pageFaultHandler(struct interruptFrame* frame, uint64_t error) {
-    s_gotoxy(0, 0);
-    s_cputs("Page Fault\n\r");
+    cputs("Page Fault\n\r");
 
     char buffer[32];
 
@@ -38,16 +37,16 @@ __attribute__((interrupt)) void pageFaultHandler(struct interruptFrame* frame, u
     uint64_t faulting_address;
     asm volatile("mov %%cr2, %0" : "=r" (faulting_address));
 
-    s_cputs("Faulting address: 0x");
+    cputs("Faulting address: 0x");
     itoa(faulting_address, buffer, 16);
-    s_cputs(buffer);
-    s_cputs("\n\r");
+    cputs(buffer);
+    cputs("\n\r");
 
     // Print the error code
-    s_cputs("Error code: 0x");
+    cputs("Error code: 0x");
     itoa(error, buffer, 16);
-    s_cputs(buffer);
-    s_cputs("\n\r");
+    cputs(buffer);
+    cputs("\n\r");
 
     //halt cpu
     for (;;) {
@@ -56,8 +55,7 @@ __attribute__((interrupt)) void pageFaultHandler(struct interruptFrame* frame, u
 }
 
 __attribute__((interrupt)) void doubleFaultHandler(struct interruptFrame* frame) {
-    s_gotoxy(0, 0);
-    s_cputs("Double Fault");
+    cputs("Double Fault\n\r");
 
     //halt cpu
     for (;;) {
@@ -66,8 +64,7 @@ __attribute__((interrupt)) void doubleFaultHandler(struct interruptFrame* frame)
 }
 
 __attribute__((interrupt)) void genProcFaultHandler(struct interruptFrame* frame) {
-    s_gotoxy(0, 0);
-    s_cputs("General Protection Fault");
+    cputs("General Protection Fault\n\r");
 
     //halt cpu
     for (;;) {

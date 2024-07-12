@@ -37,9 +37,9 @@ INCS =
 LIBS = 
 
 LDS = -T kernel.ld
-CFLAGS += $(LIBS) $(INCS) -g -O0 -nostdlib -ffreestanding -fno-stack-protector -DVERSION_REL=$(VERSION_REL) -DVERSION_MAJ=$(VERSION_MAJ) -DVERSION_MIN=$(VERSION_MIN) -DVERSION_FIX=$(VERSION_FIX)
-ASFLAGS += -f elf64 -g -F dwarf
-LDFLAGS += -static -nostdlib
+override CFLAGS := $(LIBS) $(INCS) -g -O0 -nostdlib -ffreestanding -fno-stack-protector -DVERSION_REL=$(VERSION_REL) -DVERSION_MAJ=$(VERSION_MAJ) -DVERSION_MIN=$(VERSION_MIN) -DVERSION_FIX=$(VERSION_FIX) $(CFLAGS)
+override ASFLAGS := -f elf64 -g -F dwarf $(ASFLAGS)
+override LDFLAGS := -static -nostdlib $(LDFLAGS)
 
 SRCDIR := src
 OBJDIR := lib

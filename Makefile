@@ -61,6 +61,7 @@ OBJS += $(patsubst $(FONTDIR)/%.psf, $(OBJDIR)/fonts/%.o, $(FSRC))
 DIRS = $(wildcard $(SRCDIR)/*)
 
 ifeq ("$(wildcard $(FONTDIR)/default.psf)","")
+$(shell mkdir -p $(FONTDIR))
 $(error No default font found! Please place a psf font at $(FONTDIR)/default.psf)
 endif
 

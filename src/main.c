@@ -29,7 +29,9 @@
 #include "serial.h"
 #include "string.h"
 #include "screen.h"
+
 #include "video/vga.h"
+#include "video/framebuffer.h"
 
 #include "paging/paging.h"
 
@@ -68,7 +70,7 @@ int main() {
     lockPages(kernelStart, ((kernelEnd - kernelStart) >> 12) + 1);
 
     mbiMap *memoryMap = getMbiEntry(mbi, mbir.memoryMap);
-    if (memoryMap->type != mbir.memoryMap) {cputs("Error: issue parsing mbi"); while (1) asm volatile("hlt");}
+    if (memoryMap->type != mbir.memoryMap) {cputs("[KERNEL] Error: issue parsing mbi"); while (1) asm volatile("hlt");}
 
     for (uint64_t i = 16; i < memoryMap->size; i += memoryMap->entrySize) {
         if (((mapEntry*)(memoryMap + i))->type != memMap.free) {
@@ -98,12 +100,18 @@ int main() {
 
     asm("sti");
 
-    s_cputs("Hello, Serial!\n\r");
 
-    if (((PSF1_Header *)&_binary_fonts_default_psf_start)->magic = PSF1_FONT_MAGIC) {
-        s_cputs("Font is psf1\n\r");
-    } else if (((PSF_font *)&_binary_fonts_default_psf_start)->magic = PSF_FONT_MAGIC) {
-        s_cputs("Font is psf1\n\r");
+    BITMAP_FONT termFont;
+
+    if (((PSF1_HEADER *)&_binary_fonts_default_psf_start)->magic = PSF1_MAGIC) {
+        s_cputs("[KERNEL] Default font is PSF 1\n\r");
+        termFont.width = 8;
+        termFont.height = ((PSF1_HEADER *)&_binary_fonts_default_psf_start)->characterSize;
+        termFont.buffer = (char *)(&_binary_fonts_default_psf_start + sizeof(PSF1_HEADER));
+        termFont.size = &_binary_fonts_default_psf_end - termFont.buffer;
+
+    } else if (((PSF2_HEADER *)&_binary_fonts_default_psf_start)->magic = PSF2_MAGIC) {
+        s_cputs("[KERNEL] Default font is PSF 2\n\r");
     }
 
     //mapPage((void *)0x400000000, (void *)0x400000000, 1);
@@ -111,12 +119,12 @@ int main() {
 
     mbiFramebuffer *mbFramebuffer = getMbiEntry(mbi, mbir.fb);
     if (mbFramebuffer->fbType == 1) {
-        lockPage(mbFramebuffer->buffer);
-        mapPage(mbFramebuffer->buffer, mbFramebuffer->buffer, 1);
+        lockPages(mbFramebuffer->buffer, (((mbFramebuffer->pitch * mbFramebuffer->height) * mbFramebuffer->bpp) >> 12) + 1);
+        mapPages(mbFramebuffer->buffer, mbFramebuffer->buffer, (((mbFramebuffer->pitch * mbFramebuffer->height) * mbFramebuffer->bpp) >> 12) + 1, 1);
         //asm("cli");
         //asm volatile("hlt");
         //asm("sti");
-        mbFramebuffer->buffer[0] = 0xffffff;
+        fb_pixel(mbFramebuffer->width / 2, mbFramebuffer->height / 2, 0xffffff, mbFramebuffer);
         //cputs("fb\n\r");
     }
 

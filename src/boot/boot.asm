@@ -26,6 +26,17 @@ global _start
 global page_table_l4
 extern main, mbi
 
+%macro outb 2
+    mov dx, %1
+    mov al, %2
+    out dx, al
+%endmacro
+
+%macro inb 1
+    mov dx, %1
+    in al, dx
+%endmacro
+
 section .text
 
 [bits 32]
@@ -38,6 +49,8 @@ _start:
     mov esp, stack_top
     
     call check_multiboot
+
+	call init_serial
 
     mov esi, s_hello
     call print
@@ -53,6 +66,16 @@ _start:
 halt:
     hlt
     jmp halt
+
+init_serial:
+	outb COM1 + 1, 0x00;    // Disable all interrupts
+   	outb COM1 + 3, 0x80;    // Enable DLAB (set baud rate divisor)
+   	outb COM1 + 0, 0x0C;    // Set divisor to 12 (lo byte) 9600 baud
+   	outb COM1 + 1, 0x00;    //                   (hi byte)
+   	outb COM1 + 3, 0x03;    // 8 bits, no parity, one stop bit
+   	outb COM1 + 2, 0xC7;    // Enable FIFO, clear them, with 14-byte threshold
+	outb COM1 + 4, 0x0B;    // Normal
+	ret
 
 check_multiboot:
 	cmp eax, 0x36d76289
@@ -148,26 +171,22 @@ enable_paging:
 	mov cr0, eax
 	ret
 
-; this early output will only work if the bootloader setup ega text mode
-print: ; puts string in esi on the screen 
-    mov edi, 0xb8000
+print: ; puts string in esi on the serial port
 .loop: 
-    lodsb
-    or al, al
+    lodsb ; move char at [esi] into al and increment esi
+    or al, al ; end of string?
     jz .exit
-    mov ah, 0x07 ; grey on black
-    mov [edi], ax
-    adc edi, 2
+    outb COM1, al
     jmp .loop
 .exit:
     ret
 
 section .data
 
-s_hello: db "Booting...", 0
-s_no_multiboot: db "Error: not booted with multiboot", 0
-s_no_cpuid: db "Error: no cpuid", 0
-s_no_long_mode: db "Error: CPU is not 64 bit", 0
+s_hello: db `[BOOT] Booting...\n\r`, 0
+s_no_multiboot: db `[BOOT] Error: not booted with multiboot\n\r`, 0
+s_no_cpuid: db `[BOOT] Error: no cpuid\n\r`, 0
+s_no_long_mode: db `[BOOT] Error: CPU is not 64 bit\n\r`, 0
 section .bss
 
 align 4096
@@ -184,6 +203,8 @@ stack_bottom:
 stack_top:
 
 section .rodata
+
+COM1 equ 0x3f8
 
 ; Access bits
 PRESENT equ 1 << 7

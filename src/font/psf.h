@@ -31,16 +31,16 @@
 extern char _binary_fonts_default_psf_start;
 extern char _binary_fonts_default_psf_end;
 
-#define PSF1_FONT_MAGIC 0x0436
+#define PSF1_MAGIC 0x0436
 
 typedef struct {
     uint16_t magic; // Magic bytes for identification.
     uint8_t fontMode; // PSF font mode.
     uint8_t characterSize; // PSF character size.
-} PSF1_Header;
+} PSF1_HEADER;
 
 
-#define PSF_FONT_MAGIC 0x864ab572
+#define PSF2_MAGIC 0x864ab572
 
 typedef struct {
     uint32_t magic;         /* magic bytes to identify PSF */
@@ -51,6 +51,13 @@ typedef struct {
     uint32_t bytesperglyph; /* size of each glyph */
     uint32_t height;        /* height in pixels */
     uint32_t width;         /* width in pixels */
-} PSF_font;
+} PSF2_HEADER;
+
+typedef struct {
+    uint32_t width;
+    uint32_t height;
+    char *buffer;
+    size_t size;
+} BITMAP_FONT;
 
 #endif // !defined _PSF_H

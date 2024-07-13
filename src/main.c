@@ -49,6 +49,8 @@ extern void *kernelEnd;
 
 void *mbi;
 
+void renderChar(uint64_t x, uint64_t y, char c, uint32_t color, BITMAP_FONT *font, mbiFramebuffer *fb);
+
 int main() {
     asm("cli");
 
@@ -121,11 +123,9 @@ int main() {
     if (mbFramebuffer->fbType == 1) {
         lockPages(mbFramebuffer->buffer, (((mbFramebuffer->pitch * mbFramebuffer->height) * mbFramebuffer->bpp) >> 12) + 1);
         mapPages(mbFramebuffer->buffer, mbFramebuffer->buffer, (((mbFramebuffer->pitch * mbFramebuffer->height) * mbFramebuffer->bpp) >> 12) + 1, 1);
-        //asm("cli");
-        //asm volatile("hlt");
-        //asm("sti");
-        fb_pixel(mbFramebuffer->width / 2, mbFramebuffer->height / 2, 0xffffff, mbFramebuffer);
-        //cputs("fb\n\r");
+
+        char *hello = "Hello, Framebuffer!";
+        for (int i = 0; hello[i]; i++) renderChar(i * 8, 0, hello[i], 0xffffff, &termFont, mbFramebuffer);
     }
 
     // now we can do user stuffs
@@ -137,4 +137,14 @@ int main() {
     //shell(); disable shell since we have no display yet
 
     while (1) asm volatile("hlt");
+}
+
+void renderChar(uint64_t x, uint64_t y, char c, uint32_t color, BITMAP_FONT *font, mbiFramebuffer *fb) {
+    for (int yi = 0; yi < font->height; yi++) {
+        for (int xi = 0; xi < font->height; xi++) {
+            if (font->buffer[yi + (c * font->height)] >> (8 - xi) & 1 ) {
+                fb_pixel(x + xi, y + yi, color, fb);
+            }
+        }       
+    }
 }

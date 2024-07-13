@@ -38,6 +38,8 @@
 #include "interrupts/interrupts.h"
 #include "interrupts/handlers.h"
 
+#include "font/psf.h"
+
 #include "shell.h"
 
 extern void *kernelStart;
@@ -98,9 +100,14 @@ int main() {
 
     s_cputs("Hello, Serial!\n\r");
 
+    if (((PSF1_Header *)&_binary_fonts_default_psf_start)->magic = PSF1_FONT_MAGIC) {
+        s_cputs("Font is psf1\n\r");
+    } else if (((PSF_font *)&_binary_fonts_default_psf_start)->magic = PSF_FONT_MAGIC) {
+        s_cputs("Font is psf1\n\r");
+    }
+
     //mapPage((void *)0x400000000, (void *)0x400000000, 1);
     //print_page_map(page_table_l4);
-
 
     mbiFramebuffer *mbFramebuffer = getMbiEntry(mbi, mbir.fb);
     if (mbFramebuffer->fbType == 1) {

@@ -26,12 +26,13 @@ PROGNAME = null
 
 VERSION_REL = 0
 VERSION_MAJ = 1
-VERSION_MIN = 2
+VERSION_MIN = 3
 VERSION_FIX = 0
 
 CC = gcc
 AS = nasm
 LD = ld
+OBJCOPY = objcopy
 
 INCS =
 LIBS = 
@@ -41,6 +42,7 @@ override CFLAGS := $(LIBS) $(INCS) -g -O0 -nostdlib -ffreestanding -fno-stack-pr
 override ASFLAGS := -f elf64 -g -F dwarf $(ASFLAGS)
 override LDFLAGS := -static -nostdlib $(LDFLAGS)
 
+FONTDIR := fonts
 SRCDIR := src
 OBJDIR := lib
 BUILDDIR := bin
@@ -52,9 +54,15 @@ rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(su
 
 SRC = $(call rwildcard,$(SRCDIR),*.c)
 SSRC = $(call rwildcard,$(SRCDIR),*.asm)
+FSRC = $(call rwildcard,$(FONTDIR),*.psf)
 OBJS = $(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(SRC))
 OBJS += $(patsubst $(SRCDIR)/%.asm, $(OBJDIR)/%.o, $(SSRC))
+OBJS += $(patsubst $(FONTDIR)/%.psf, $(OBJDIR)/fonts/%.o, $(FSRC))
 DIRS = $(wildcard $(SRCDIR)/*)
+
+ifeq ("$(wildcard $(FONTDIR)/default.psf)","")
+$(error No default font found! Please place a psf font at $(FONTDIR)/default.psf)
+endif
 
 .PHONY: build
 build: setup link image
@@ -79,6 +87,11 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.asm
 	@ mkdir -p $(@D)
 	$(AS) $(ASFLAGS) $^ -o $@
 
+$(OBJDIR)/fonts/%.o: $(FONTDIR)/%.psf
+	@ echo !==== CONVERTING $^
+	@ mkdir -p $(@D)
+	$(OBJCOPY) -O elf64-x86-64 -B i386 -I binary $^ $@
+
 .PHONY: image
 image:
 	@ cp $(BUILDDIR)/$(PROGNAME)-kernel $(IMAGEDIR)
@@ -86,6 +99,7 @@ image:
 
 .PHONY: setup
 setup:
+	@ mkdir -p $(FONTDIR)
 	@ mkdir -p $(SRCDIR)
 	@ mkdir -p $(OBJDIR)
 	@ mkdir -p $(BUILDDIR)

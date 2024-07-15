@@ -48,7 +48,7 @@ OBJDIR := lib
 BUILDDIR := bin
 IMAGEDIR := iso
 
-OVMFDIR := /usr/share/ovmf
+EFIBIOS := /usr/share/ovmf/x64/OVMF_CODE.fd
 
 rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
 
@@ -128,16 +128,16 @@ run-debug:
 
 .PHONY: run-efi
 run-efi:
-	qemu-system-x86_64 -bios $(OVMFDIR)/x64/OVMF_CODE.fd -drive format=raw,file=$(BUILDDIR)/$(PROGNAME).iso -no-reboot -no-shutdown -m 4g -serial stdio
+	qemu-system-x86_64 -bios $(EFIBIOS) -drive format=raw,file=$(BUILDDIR)/$(PROGNAME).iso -no-reboot -no-shutdown -m 4g -serial stdio
 
 .PHONY: run-efi-kvm
 run-efi-kvm:
-	qemu-system-x86_64 -bios $(OVMFDIR)/x64/OVMF_CODE.fd -drive format=raw,file=$(BUILDDIR)/$(PROGNAME).iso -no-reboot -no-shutdown -accel kvm -m 4g -serial stdio
+	qemu-system-x86_64 -bios $(EFIBIOS) -drive format=raw,file=$(BUILDDIR)/$(PROGNAME).iso -no-reboot -no-shutdown -accel kvm -m 4g -serial stdio
 
 .PHONY: run-efi-hvf
 run-efi-hvf:
-	qemu-system-x86_64 -bios $(OVMFDIR)/x64/OVMF_CODE.fd -drive format=raw,file=$(BUILDDIR)/$(PROGNAME).iso -no-reboot -no-shutdown -accel hvf -m 4g -serial stdio
+	qemu-system-x86_64 -bios $(EFIBIOS) -drive format=raw,file=$(BUILDDIR)/$(PROGNAME).iso -no-reboot -no-shutdown -accel hvf -m 4g -serial stdio
 
 .PHONY: run-efi-debug
 run-efi-debug:
-	qemu-system-x86_64 -bios $(OVMFDIR)/x64/OVMF_CODE.fd -drive format=raw,file=$(BUILDDIR)/$(PROGNAME).iso -no-reboot -no-shutdown -m 4g -d int -M smm=off -s -S
+	qemu-system-x86_64 -bios $(EFIBIOS) -drive format=raw,file=$(BUILDDIR)/$(PROGNAME).iso -no-reboot -no-shutdown -m 4g -d int -M smm=off -s -S

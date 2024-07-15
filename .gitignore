@@ -19,3 +19,4 @@ bochs-gdb.cfg
 *.o
 *.a
 *.exe
+*.fd

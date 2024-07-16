@@ -114,6 +114,20 @@ int main() {
 
     } else if (((PSF2_HEADER *)&_binary_fonts_default_psf_start)->magic == PSF2_MAGIC) {
         s_cputs("[KERNEL] Default font is PSF 2\n\r");
+        termFont.width = ((PSF2_HEADER *)&_binary_fonts_default_psf_start)->width;
+        termFont.height = ((PSF2_HEADER *)&_binary_fonts_default_psf_start)->height;
+        termFont.buffer = (void *)((uint64_t)(&_binary_fonts_default_psf_start) + (((PSF2_HEADER *)&_binary_fonts_default_psf_start)->headersize));
+        termFont.size = (((PSF2_HEADER *)&_binary_fonts_default_psf_start)->numglyph) * (((PSF2_HEADER *)&_binary_fonts_default_psf_start)->bytesperglyph);
+
+        if (termFont.width != 8) {
+            s_cputs("[KERNEL][ERROR] Font width unsupported");
+            termFont.buffer = (void *)0x0;
+        }
+    }
+
+    if (!termFont.buffer) {
+        s_cputs("[KERNEL][PANIC] No terminal font loaded, unable to continue");
+        while (1) asm volatile ("hlt");
     }
 
     mbiFramebuffer *mbFramebuffer = getMbiEntry(mbi, mbir.fb);

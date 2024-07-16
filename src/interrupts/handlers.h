@@ -32,7 +32,7 @@
 struct interruptFrame;
 __attribute__((interrupt)) void pageFaultHandler(struct interruptFrame* frame, uint64_t error);
 __attribute__((interrupt)) void doubleFaultHandler(struct interruptFrame* frame);
-__attribute__((interrupt)) void genProcFaultHandler(struct interruptFrame* frame);
+__attribute__((interrupt)) void genProcFaultHandler(struct interruptFrame* frame, uint64_t error);
 __attribute__((interrupt)) void keyboardHandler(struct interruptFrame* frame);
 
 #endif // !defined _INTERUPTS_HANDLERS_H

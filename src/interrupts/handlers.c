@@ -25,11 +25,12 @@
 
 #include "handlers.h"
 #include "../conio.h"
+#include "../serial.h"
 #include "../io/pic.h"
 #include "../string.h"
 
 __attribute__((interrupt)) void pageFaultHandler(struct interruptFrame* frame, uint64_t error) {
-    cputs("Page Fault\n\r");
+    s_cputs("[KERNEL][ERROR] Page Fault\n\r");
 
     char buffer[32];
 
@@ -37,25 +38,22 @@ __attribute__((interrupt)) void pageFaultHandler(struct interruptFrame* frame, u
     uint64_t faulting_address;
     asm volatile("mov %%cr2, %0" : "=r" (faulting_address));
 
-    cputs("Faulting address: 0x");
+    s_cputs("Faulting address: 0x");
     itoa(faulting_address, buffer, 16);
-    cputs(buffer);
-    cputs("\n\r");
+    s_cputs(buffer);
+    s_cputs("\n\r");
 
     // Print the error code
-    cputs("Error code: 0x");
+    s_cputs("Error code: 0x");
     itoa(error, buffer, 16);
-    cputs(buffer);
-    cputs("\n\r");
+    s_cputs(buffer);
+    s_cputs("\n\r");
 
-    //halt cpu
-    for (;;) {
-        asm volatile("hlt");
-    }
+    return; // heres to hoping shit dont break
 }
 
 __attribute__((interrupt)) void doubleFaultHandler(struct interruptFrame* frame) {
-    cputs("Double Fault\n\r");
+    s_cputs("[KERNEL][PANIC] Double Fault\n\r");
 
     //halt cpu
     for (;;) {
@@ -63,13 +61,18 @@ __attribute__((interrupt)) void doubleFaultHandler(struct interruptFrame* frame)
     }
 }
 
-__attribute__((interrupt)) void genProcFaultHandler(struct interruptFrame* frame) {
-    cputs("General Protection Fault\n\r");
+__attribute__((interrupt)) void genProcFaultHandler(struct interruptFrame* frame, uint64_t error) {
+    s_cputs("[KERNEL][ERROR] General Protection Fault\n\r");
 
-    //halt cpu
-    for (;;) {
-        asm volatile("hlt");
-    }
+    char buffer[32];
+
+    // Print the error code
+    s_cputs("Error code: 0x");
+    itoa(error, buffer, 16);
+    s_cputs(buffer);
+    s_cputs("\n\r");
+
+    return; // heres to hoping shit dont break
 }
 
 #include "../io/hid/keyboard.h"
@@ -111,7 +114,7 @@ __attribute__((interrupt)) void keyboardHandler(struct interruptFrame* frame) {
     }
 
     keyBuffer[i] = usKeyLower[scancode];
-    //cputs(keyBuffer);
-    //cputs("\n\r");
+    //s_cputs(keyBuffer);
+    //s_cputs("\n\r");
     //cputc(usKeyLower[scancode]);
 }

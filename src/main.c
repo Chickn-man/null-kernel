@@ -44,6 +44,9 @@
 
 #include "shell.h"
 
+#define STRINGIZE(foo) #foo
+#define S(bar) STRINGIZE(bar)
+
 extern void *kernelStart;
 extern void *kernelEnd;
 
@@ -52,27 +55,22 @@ void *mbi;
 void renderChar(uint64_t x, uint64_t y, char c, uint32_t color, BITMAP_FONT *font, mbiFramebuffer *fb);
 
 int main() {
+    char buffer[64];
+    uint64_t* pt = page_table_l4;
+
     asm("cli");
 
     init_serial();
-
-    //cputs("\n\r");
-
-    char buffer[64];
-
-    uint64_t* pt = page_table_l4;
-
-    // lock memory thats in use
-    uint8_t pb[0x800]; // this only gives us access to the first 8mb of memory, we'll reallocate this later
-    pageBitmap.size = 0x4000;
+    
+    uint8_t pb[0x1000]; // this only gives us access to the first 16mb of memory, we'll reallocate this later
+    pageBitmap.size = 0x8000;
     pageBitmap.buffer = (uint8_t*)&pb;
 
-    lockPages(0, 1000); // lock the first 4mb
-
+    lockPages(0, 1000); // lock the first 4MiB
     lockPages(kernelStart, ((kernelEnd - kernelStart) >> 12) + 1);
 
     mbiMap *memoryMap = getMbiEntry(mbi, mbir.memoryMap);
-    if (memoryMap->type != mbir.memoryMap) {cputs("[KERNEL] Error: issue parsing mbi"); while (1) asm volatile("hlt");}
+    if (memoryMap->type != mbir.memoryMap) {s_cputs("[KERNEL][PANIC] issue parsing mbi"); while (1) asm volatile("hlt");}
 
     for (uint64_t i = 16; i < memoryMap->size; i += memoryMap->entrySize) {
         if (((mapEntry*)(memoryMap + i))->type != memMap.free) {
@@ -82,7 +80,6 @@ int main() {
 
     // map things
     mapPages(0, 0, 1024, 1); // map the first 4mb to itself
-    //mapPages(&kernelStart, &kernelStart, (uint64_t)((&kernelEnd - &kernelStart) >> 12) + 1, 1);
 
     // IDT crap
     uint8_t idtrBuf[0x1000]; // TODO allocate this at runtime
@@ -102,47 +99,45 @@ int main() {
 
     asm("sti");
 
+    init_serial();
+
+    mapPages((void *)0x400000, (void *)0x400000, 1025, 1); // map the second 4MiB + 1 page | do not lock
 
     BITMAP_FONT termFont;
 
-    if (((PSF1_HEADER *)&_binary_fonts_default_psf_start)->magic = PSF1_MAGIC) {
+    if (((PSF1_HEADER *)&_binary_fonts_default_psf_start)->magic == PSF1_MAGIC) {
         s_cputs("[KERNEL] Default font is PSF 1\n\r");
         termFont.width = 8;
         termFont.height = ((PSF1_HEADER *)&_binary_fonts_default_psf_start)->characterSize;
         termFont.buffer = (char *)(&_binary_fonts_default_psf_start + sizeof(PSF1_HEADER));
         termFont.size = &_binary_fonts_default_psf_end - termFont.buffer;
 
-    } else if (((PSF2_HEADER *)&_binary_fonts_default_psf_start)->magic = PSF2_MAGIC) {
+    } else if (((PSF2_HEADER *)&_binary_fonts_default_psf_start)->magic == PSF2_MAGIC) {
         s_cputs("[KERNEL] Default font is PSF 2\n\r");
     }
 
-    //mapPage((void *)0x400000000, (void *)0x400000000, 1);
-    //print_page_map(page_table_l4);
-
     mbiFramebuffer *mbFramebuffer = getMbiEntry(mbi, mbir.fb);
     if (mbFramebuffer->fbType == 1) {
-        lockPages(mbFramebuffer->buffer, (((mbFramebuffer->pitch * mbFramebuffer->height) * mbFramebuffer->bpp) >> 12) + 1);
-        mapPages(mbFramebuffer->buffer, mbFramebuffer->buffer, (((mbFramebuffer->pitch * mbFramebuffer->height) * mbFramebuffer->bpp) >> 12) + 1, 1);
+        lockPages(mbFramebuffer->buffer, (((mbFramebuffer->pitch * mbFramebuffer->height) * mbFramebuffer->bpp + 0xfff) >> 12));
+        mapPages(mbFramebuffer->buffer, mbFramebuffer->buffer, (((mbFramebuffer->pitch * mbFramebuffer->height) * mbFramebuffer->bpp + 0xfff) >> 12), 1);
 
+        char *ver = "Null " S(VERSION_REL) "." S(VERSION_MAJ) "." S(VERSION_MIN) "." S(VERSION_FIX);
+        for (int i = 0; ver[i]; i++) renderChar(i * 8, termFont.height * 0, ver[i], 0xffffff, &termFont, mbFramebuffer);
         char *hello = "Hello, Framebuffer!";
-        for (int i = 0; hello[i]; i++) renderChar(i * 8, 0, hello[i], 0xffffff, &termFont, mbFramebuffer);
+        for (int i = 0; hello[i]; i++) renderChar(i * 8, termFont.height * 1, hello[i], 0xffffff, &termFont, mbFramebuffer);
     }
 
     // now we can do user stuffs
-    //vgaEnableCursor();
-    //setColor(0x07);
 
-    //screenFill(0, 0, 80, 25, ' ', 0x07);
+    //shell(); disable shell since we have no terminal yet
 
-    //shell(); disable shell since we have no display yet
-
-    while (1) asm volatile("hlt");
+    while (1) asm volatile ("hlt");
 }
 
 void renderChar(uint64_t x, uint64_t y, char c, uint32_t color, BITMAP_FONT *font, mbiFramebuffer *fb) {
     for (int yi = 0; yi < font->height; yi++) {
         for (int xi = 0; xi < font->height; xi++) {
-            if (font->buffer[yi + (c * font->height)] >> (8 - xi) & 1 ) {
+            if (font->buffer[yi + (c * font->height)] >> (8 - xi) & 1 ) { // check if pixel is set in font
                 fb_pixel(x + xi, y + yi, color, fb);
             }
         }       

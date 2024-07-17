@@ -150,8 +150,8 @@ int main() {
 
 void renderChar(uint64_t x, uint64_t y, char c, uint32_t color, BITMAP_FONT *font, mbiFramebuffer *fb) {
     for (int yi = 0; yi < font->height; yi++) {
-        for (int xi = 0; xi < font->height; xi++) {
-            if (font->buffer[yi + (c * font->height)] >> (8 - xi) & 1 ) { // check if pixel is set in font
+        for (int xi = 0; xi < font->width; xi++) {
+            if (font->buffer[yi + (c * font->height)] >> (7 - xi) & 1 ) { // check if pixel is set in font
                 fb_pixel(x + xi, y + yi, color, fb);
             }
         }       

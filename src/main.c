@@ -120,13 +120,13 @@ int main() {
         termFont.size = (((PSF2_HEADER *)&_binary_fonts_default_psf_start)->numglyph) * (((PSF2_HEADER *)&_binary_fonts_default_psf_start)->bytesperglyph);
 
         if (termFont.width != 8) {
-            s_cputs("[KERNEL][ERROR] Font width unsupported");
+            s_cputs("[KERNEL][ERROR] Font width unsupported\n\r");
             termFont.buffer = (void *)0x0;
         }
     }
 
     if (!termFont.buffer) {
-        s_cputs("[KERNEL][PANIC] No terminal font loaded, unable to continue");
+        s_cputs("[KERNEL][PANIC] No terminal font loaded, unable to continue\n\r");
         while (1) asm volatile ("hlt");
     }
 
@@ -151,7 +151,7 @@ int main() {
 void renderChar(uint64_t x, uint64_t y, char c, uint32_t color, BITMAP_FONT *font, mbiFramebuffer *fb) {
     for (int yi = 0; yi < font->height; yi++) {
         for (int xi = 0; xi < font->width; xi++) {
-            if (font->buffer[yi + (c * font->height)] >> (7 - xi) & 1 ) { // check if pixel is set in font
+            if (font->buffer[yi + (c * font->height)] >> ((font->width - 1) - xi) & 1 ) { // check if pixel is set in font
                 fb_pixel(x + xi, y + yi, color, fb);
             }
         }       

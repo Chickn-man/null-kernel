@@ -58,6 +58,7 @@ typedef struct {
     uint32_t height;
     char *buffer;
     size_t size;
+    size_t bpg; // byte per glyph
 } BITMAP_FONT;
 
 #endif // !defined _PSF_H

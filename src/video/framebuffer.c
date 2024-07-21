@@ -30,3 +30,15 @@ int fb_pixel(uint64_t x, uint64_t y, uint64_t color, mbiFramebuffer *fb) {
         ((uint8_t *)fb->buffer)[x * (fb->bpp / 8) + y * fb->pitch + i] = (uint8_t)(color >> i * 8);
     }
 }
+
+void renderChar(uint64_t x, uint64_t y, char c, uint32_t color, BITMAP_FONT *font, mbiFramebuffer *fb) {
+    for (int yi = 0; yi < font->height; yi++) {
+        for (int xi = 0; xi < font->width; xi++) {
+            if (font->buffer[yi + (c * font->height)] >> ((font->width - 1) - xi) & 1 ) { // check if pixel is set in font
+                fb_pixel(x + xi, y + yi, color, fb);
+            } else {
+                fb_pixel(x + xi, y + yi, 0x000000, fb);
+            }
+        }       
+    }
+}

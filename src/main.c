@@ -32,6 +32,7 @@
 
 #include "video/vga.h"
 #include "video/framebuffer.h"
+#include "video/terminal.h"
 
 #include "paging/paging.h"
 
@@ -52,10 +53,9 @@ extern void *kernelEnd;
 
 void *mbi;
 
-void renderChar(uint64_t x, uint64_t y, char c, uint32_t color, BITMAP_FONT *font, mbiFramebuffer *fb);
-
 int main() {
     char buffer[64];
+
     uint64_t* pt = page_table_l4;
 
     asm("cli");
@@ -135,27 +135,20 @@ int main() {
         lockPages(mbFramebuffer->buffer, (((mbFramebuffer->pitch * mbFramebuffer->height) * mbFramebuffer->bpp + 0xfff) >> 12));
         mapPages(mbFramebuffer->buffer, mbFramebuffer->buffer, (((mbFramebuffer->pitch * mbFramebuffer->height) * mbFramebuffer->bpp + 0xfff) >> 12), 1);
 
-        char *ver = "Null " S(VERSION_REL) "." S(VERSION_MAJ) "." S(VERSION_MIN) "." S(VERSION_FIX);
-        for (int i = 0; ver[i]; i++) renderChar(i * 8, termFont.height * 0, ver[i], 0xffffff, &termFont, mbFramebuffer);
-        char *hello = "Hello, Framebuffer!";
-        for (int i = 0; hello[i]; i++) renderChar(i * 8, termFont.height * 1, hello[i], 0xffffff, &termFont, mbFramebuffer);
+        //char *ver = "Null " S(VERSION_REL) "." S(VERSION_MAJ) "." S(VERSION_MIN) "." S(VERSION_FIX);
+        //for (int i = 0; ver[i]; i++) renderChar(i * 8, termFont.height * 0, ver[i], 0xffffff, &termFont, mbFramebuffer);
+        //char *hello = "Hello, Framebuffer!";
+        //for (int i = 0; hello[i]; i++) renderChar(i * 8, termFont.height * 1, hello[i], 0xffffff, &termFont, mbFramebuffer);
     }
 
     
     // now we can do user stuffs
-    initConio(0x3f8); // set com1 as output for conio
+
+    initTerminal(&termFont, mbFramebuffer);
+
+    initConio(1); // set com1 as output for conio
 
     shell();
 
     while (1) asm volatile ("hlt");
-}
-
-void renderChar(uint64_t x, uint64_t y, char c, uint32_t color, BITMAP_FONT *font, mbiFramebuffer *fb) {
-    for (int yi = 0; yi < font->height; yi++) {
-        for (int xi = 0; xi < font->width; xi++) {
-            if (font->buffer[yi + (c * font->height)] >> ((font->width - 1) - xi) & 1 ) { // check if pixel is set in font
-                fb_pixel(x + xi, y + yi, color, fb);
-            }
-        }       
-    }
 }

@@ -26,7 +26,15 @@
 #ifndef _VIDEO_TERMINAL_H
 #define _VIDEO_TERMINAL_H
 
+#include "framebuffer.h"
+#include "../font/psf.h"
+
+#define ESC_SEQ_MAX_LEN 16
+
+int initTerminal(BITMAP_FONT *font, mbiFramebuffer *fb);
+
 char tgetc();
 void tputc(char c);
+void tputcr(char c);
 
 #endif // !defined _VIDEO_TERMINAL_H

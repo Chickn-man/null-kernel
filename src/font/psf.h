@@ -24,6 +24,7 @@
 */
 
 #include <stdint.h>
+#include <stddef.h>
 
 #ifndef _PSF_H
 #define _PSF_H

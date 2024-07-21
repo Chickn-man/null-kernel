@@ -28,8 +28,11 @@
 
 #include <stdint.h>
 
+#include "../font/psf.h"
 #include "../multiboot/mbi.h"
 
 int fb_pixel(uint64_t x, uint64_t y, uint64_t color, mbiFramebuffer *fb);
+
+void renderChar(uint64_t x, uint64_t y, char c, uint32_t color, BITMAP_FONT *font, mbiFramebuffer *fb);
 
 #endif //!defined _VIDEO_FRAMEBUFFER_H

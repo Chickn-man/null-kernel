@@ -97,11 +97,9 @@ char cgetc() {
 
 }
 
-/* puts a character c at the cursor position ignoring \n and \r */
+/* puts a character c at the cursor position ignoring escape codes */
 void cputc2(char c) {
-    if (c == '\n' || c == '\r') return;
-
-    cputc(c);
+    tputcr(c);
 }
 
 void clrscr() {

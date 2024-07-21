@@ -26,8 +26,8 @@ PROGNAME = null
 
 VERSION_REL = 0
 VERSION_MAJ = 1
-VERSION_MIN = 3
-VERSION_FIX = 2
+VERSION_MIN = 4
+VERSION_FIX = 0
 
 CC = gcc
 AS = nasm
@@ -112,15 +112,15 @@ clean:
 
 .PHONY: run
 run:
-	qemu-system-x86_64 -drive format=raw,file=$(BUILDDIR)/$(PROGNAME).iso -no-reboot -no-shutdown -m 4g -serial stdio
+	qemu-system-x86_64 -drive format=raw,file=$(BUILDDIR)/$(PROGNAME).iso -no-reboot -no-shutdown -m 4g
 
 .PHONY: run-kvm
 run-kvm:
-	qemu-system-x86_64 -drive format=raw,file=$(BUILDDIR)/$(PROGNAME).iso -no-reboot -no-shutdown -accel kvm -m 4g -serial stdio
+	qemu-system-x86_64 -drive format=raw,file=$(BUILDDIR)/$(PROGNAME).iso -no-reboot -no-shutdown -accel kvm -m 4g
 
 .PHONY: run-hvf
 run-hvf:
-	qemu-system-x86_64 -drive format=raw,file=$(BUILDDIR)/$(PROGNAME).iso -no-reboot -no-shutdown -accel hvf -m 4g -serial stdio
+	qemu-system-x86_64 -drive format=raw,file=$(BUILDDIR)/$(PROGNAME).iso -no-reboot -no-shutdown -accel hvf -m 4g
 
 .PHONY: run-debug
 run-debug:
@@ -128,15 +128,15 @@ run-debug:
 
 .PHONY: run-efi
 run-efi:
-	qemu-system-x86_64 -bios $(EFIBIOS) -drive format=raw,file=$(BUILDDIR)/$(PROGNAME).iso -no-reboot -no-shutdown -m 4g -serial stdio
+	qemu-system-x86_64 -bios $(EFIBIOS) -drive format=raw,file=$(BUILDDIR)/$(PROGNAME).iso -no-reboot -no-shutdown -m 4g
 
 .PHONY: run-efi-kvm
 run-efi-kvm:
-	qemu-system-x86_64 -bios $(EFIBIOS) -drive format=raw,file=$(BUILDDIR)/$(PROGNAME).iso -no-reboot -no-shutdown -accel kvm -m 4g -serial stdio
+	qemu-system-x86_64 -bios $(EFIBIOS) -drive format=raw,file=$(BUILDDIR)/$(PROGNAME).iso -no-reboot -no-shutdown -accel kvm -m 4g
 
 .PHONY: run-efi-hvf
 run-efi-hvf:
-	qemu-system-x86_64 -bios $(EFIBIOS) -drive format=raw,file=$(BUILDDIR)/$(PROGNAME).iso -no-reboot -no-shutdown -accel hvf -m 4g -serial stdio
+	qemu-system-x86_64 -bios $(EFIBIOS) -drive format=raw,file=$(BUILDDIR)/$(PROGNAME).iso -no-reboot -no-shutdown -accel hvf -m 4g
 
 .PHONY: run-efi-debug
 run-efi-debug:

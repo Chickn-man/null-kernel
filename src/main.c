@@ -119,7 +119,7 @@ int main() {
         termFont.buffer = (void *)((uint64_t)(&_binary_fonts_default_psf_start) + (((PSF2_HEADER *)&_binary_fonts_default_psf_start)->headersize));
         termFont.size = (((PSF2_HEADER *)&_binary_fonts_default_psf_start)->numglyph) * (((PSF2_HEADER *)&_binary_fonts_default_psf_start)->bytesperglyph);
 
-        if (termFont.width != 8) {
+        if (termFont.width != 8) { // renderChar cant render fonts that arent 8 pixels wide
             s_cputs("[KERNEL][ERROR] Font width unsupported\n\r");
             termFont.buffer = (void *)0x0;
         }
@@ -141,9 +141,11 @@ int main() {
         for (int i = 0; hello[i]; i++) renderChar(i * 8, termFont.height * 1, hello[i], 0xffffff, &termFont, mbFramebuffer);
     }
 
+    
     // now we can do user stuffs
+    initConio(0x3f8); // set com1 as output for conio
 
-    //shell(); disable shell since we have no terminal yet
+    shell();
 
     while (1) asm volatile ("hlt");
 }

@@ -50,7 +50,6 @@ void shell() {
     char input[128];
     char command[128];
 
-    clrscr();
     cputs(HELP_TEXT);
     cputc('>');
 

@@ -1,5 +1,5 @@
 /*
-#  conio functions for the null Kernel
+#  vt100 terminal emulator for the null Kernel
 #
 ##############################################################################
 #
@@ -23,24 +23,10 @@
 ##############################################################################
 */
 
-#ifndef _CONIO_H
-#define _CONIO_H
+#ifndef _VIDEO_TERMINAL_H
+#define _VIDEO_TERMINAL_H
 
-#include <stdint.h>
+char tgetc();
+void tputc(char c);
 
-int initConio(uint16_t mode);
-
-int wherex();
-int wherey();
-void gotox(int x);
-void gotoy(int y);
-void gotoxy(int x, int y);
-
-void cputs(char *s);
-void cputc(char c);
-void cputc2(char c);
-char cgetc();
-
-void clrscr();
-
-#endif // !defined _CONIO_H
+#endif // !defined _VIDEO_TERMINAL_H

@@ -26,91 +26,75 @@
 #include "memory.h"
 #include "conio.h"
 #include "screen.h"
-#include "video/vga.h"
-#include "io/hid/keyboard.h"
+#include "video/terminal.h"
+#include "io/pic.h"
 
 #include <stdint.h>
 #include <stddef.h>
 
-extern character *screen;
+uint32_t outputMode = 0; 
+// Possible Modes:
+// 0 : No Output
+// 1 : Terminal Emu
+// 0x3F8 : COM1
+// 0x2F8 : COM2
+// 0x3E8 : COM3
+// 0x2E8 : COM4
+// 0x5F8 : COM5
+// 0x4F8 : COM6
+// 0x5E8 : COM7
+// 0x4E8 : COM8
 
-extern size_t cols;
-extern size_t rows;
-
-extern int cursorX;
-extern int cursorY;
-
-extern uint8_t defaultColor;
+int initConio(uint16_t mode) { // ^^ mode can be any valid output mode ^^
+    outputMode = mode;
+}
 
 int wherex() {
-    return cursorX;
+    return 0; // ansi cursor get
 }
 
 int wherey() {
-    return cursorY;
-}
+    return 0; // ansi cursor get
+} 
 
 void gotox(int x) {
-    if (x >= cols) return;
-    cursorX = x;
-    vgaUpdateCursor(cursorX, cursorY);
+    // ansi cursor move
 }
 
 void gotoy(int y) {
-    if (y >= rows) return;
-    cursorY = y;
-    vgaUpdateCursor(cursorX, cursorY);
+    // ansi cursor move
 }
 
 void gotoxy(int x, int y) {
-    if (x >= cols) return;
-    if (y >= rows) return;
-    cursorX = x;
-    cursorY = y;
-    vgaUpdateCursor(cursorX, cursorY);
+    // ansi cursor move
 }
 
 void cputs(char *s) {
     for (int i = 0; s[i]; i++) cputc(s[i]);
 }
 
-// crude prototype
 void cputc(char c) {
-    if (!c) return;
-
-    switch (c) {
-        case '\n':
-            cursorY++;
-            break;
-        case '\r':
-            cursorX = 0; 
-            break;
-        case '\b':
-            cursorX--;
-            if (cursorX < 0) cursorX = 0;
-            break;
-        default:
-            screen[(cols * cursorY) + cursorX] = (character){c, defaultColor};
-            cursorX++;
-            break;
+    if (outputMode == 1) {
+        tputc(c);
+    } else {
+        outb(outputMode, c);
     }
-
-    if (cursorX >= cols) cursorX = 0, cursorY++;
-    if (cursorY >= rows) {
-        cursorY = rows - 1;
-        screenShift(0, 1, 0, 0, cols, rows - 1);
-        screenFill(0, rows, cols, 1, ' ', defaultColor);
-    }
-
-    vgaUpdateCursor(cursorX, cursorY);
 }
 
 char cgetc() {
-    char c = keyBuffer[0];
+    /*char c = keyBuffer[0];
     if (!c) return c;
     memcpy(keyBuffer, keyBuffer + 1, 62);
-    keyBuffer[63] = 0;
-    return (c);
+    keyBuffer[63] = 0;*/
+    
+    if (outputMode == 1) {
+        return tgetc();
+    } else {
+        if (outputMode) return inb(outputMode);
+    }
+
+    return 0;
+
 }
 
 /* puts a character c at the cursor position ignoring \n and \r */
@@ -121,8 +105,6 @@ void cputc2(char c) {
 }
 
 void clrscr() {
-    screenFill(0, 0, cols, rows, ' ', defaultColor);
-
-    gotoxy(0, 0);
+    cputs("\e[2J\e[H");
 }
 

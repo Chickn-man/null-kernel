@@ -57,6 +57,7 @@ _start:
 
     call check_cpuid
 	call check_long_mode
+	call enable_sse
 	call setup_page_tables
 	call enable_paging
 	lgdt [gdt.pointer]
@@ -171,6 +172,25 @@ enable_paging:
 	mov cr0, eax
 	ret
 
+enable_sse:
+	mov eax, 0x1
+	cpuid
+	test edx, 1<<25
+	jz .noSSE
+	;SSE is available
+	mov eax, cr0
+	and ax, 0xFFFB		;clear coprocessor emulation CR0.EM
+	or ax, 0x2			;set coprocessor monitoring  CR0.MP
+	mov cr0, eax
+	mov eax, cr4
+	or ax, 3 << 9		;set CR4.OSFXSR and CR4.OSXMMEXCPT at the same time
+	mov cr4, eax
+	ret
+.noSSE:
+	mov esi, s_no_sse
+	call print
+	jmp halt
+
 print: ; puts string in esi on the serial port
 .loop: 
     lodsb ; move char at [esi] into al and increment esi
@@ -187,6 +207,7 @@ s_hello: db `[BOOT] Booting...\n\r`, 0
 s_no_multiboot: db `[BOOT] Error: not booted with multiboot\n\r`, 0
 s_no_cpuid: db `[BOOT] Error: no cpuid\n\r`, 0
 s_no_long_mode: db `[BOOT] Error: CPU is not 64 bit\n\r`, 0
+s_no_sse: db `[BOOT] Error: SSE is available\n\r`, 0
 section .bss
 
 align 4096
